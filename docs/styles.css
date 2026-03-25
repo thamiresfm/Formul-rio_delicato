@@ -340,6 +340,7 @@ textarea.field-error {
   border-radius: 999px;
   border: 1px solid transparent;
   cursor: pointer;
+  touch-action: manipulation;
   transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
 }
 

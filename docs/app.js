@@ -300,11 +300,30 @@
     if (corpo.length > WA_TEXTO_MAX) {
       corpo = `${corpo.slice(0, WA_TEXTO_MAX)}\n…(texto truncado — veja o documento Word)`;
     }
-    const url = `https://wa.me/${WHATSAPP_LOJA_E164}?text=${encodeURIComponent(corpo)}`;
-    return url.length > 8192 ? `https://wa.me/${WHATSAPP_LOJA_E164}` : url;
+    const encoded = encodeURIComponent(corpo);
+    let url = `https://api.whatsapp.com/send?phone=${WHATSAPP_LOJA_E164}&text=${encoded}`;
+    if (url.length > 8000) {
+      url = `https://api.whatsapp.com/send?phone=${WHATSAPP_LOJA_E164}`;
+    }
+    return url;
   }
 
-  function abrirWhatsappAutomatico(url) {
+  function isProvavelMobile() {
+    const ua = navigator.userAgent || "";
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
+    if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return true;
+    return window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  /**
+   * No celular, nova aba/pop-up costuma ser bloqueado — abre na mesma janela (volte com "Voltar" no navegador).
+   * No desktop, tenta abrir em nova aba para não perder o download do Word.
+   */
+  function abrirWhatsappUrl(url) {
+    if (isProvavelMobile()) {
+      window.location.assign(url);
+      return;
+    }
     const win = window.open(url, "_blank", "noopener,noreferrer");
     if (win) return;
     const a = document.createElement("a");
@@ -355,7 +374,7 @@
         showToast("Dados do pedido indisponíveis. Envie o formulário novamente.", true);
         return;
       }
-      abrirWhatsappAutomatico(abrirUrlWhatsappComTexto(ultimoTextoWhatsapp));
+      abrirWhatsappUrl(abrirUrlWhatsappComTexto(ultimoTextoWhatsapp));
     });
   }
 
