@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "sync-docs": "mkdir -p docs/assets && cp -f public/index.html public/app.js public/styles.css docs/ && cp -f public/assets/logo-delicatto.png docs/assets/ && touch docs/.nojekyll"
   },
   "engines": {
     "node": ">=18"
