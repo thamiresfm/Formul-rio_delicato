@@ -1,17 +1,10 @@
-(function () {
-  /** Número só dígitos (E.164 BR sem +): atendimento Delicatto */
-  const WHATSAPP_LOJA_E164 = "5521996728473";
-  const WA_TEXTO_MAX = 3500;
+import { gerarDocxPedido } from "./gerar-docx.js";
 
-  function urlApiPedido() {
-    const base =
-      typeof window !== "undefined" && window.DELICATO_API_URL
-        ? String(window.DELICATO_API_URL).replace(/\/$/, "")
-        : "";
-    return base ? `${base}/api/pedido` : "/api/pedido";
-  }
+/** Número só dígitos (E.164 BR sem +): atendimento Delicatto */
+const WHATSAPP_LOJA_E164 = "5521996728473";
+const WA_TEXTO_MAX = 3500;
 
-  const form = document.getElementById("pedido-form");
+const form = document.getElementById("pedido-form");
   const tipoInputs = form.querySelectorAll('input[name="tipoProduto"]');
   const secPerso = document.getElementById("sec-personalizacao");
   const secFotos = document.getElementById("sec-fotos");
@@ -54,13 +47,14 @@
   function atualizarExtraTampa() {
     if (!tipoExtraTampa) return;
     const v = tipoExtraTampa.value;
-    wrapDataEspecial.classList.toggle("hidden", v !== "data-especial");
-    wrapEuTeAmo.classList.toggle("hidden", v !== "eu-te-amo");
-    wrapTextoCurto.classList.toggle("hidden", v !== "texto-curto");
+    if (wrapDataEspecial) wrapDataEspecial.classList.toggle("hidden", v !== "data-especial");
+    if (wrapEuTeAmo) wrapEuTeAmo.classList.toggle("hidden", v !== "eu-te-amo");
+    if (wrapTextoCurto) wrapTextoCurto.classList.toggle("hidden", v !== "texto-curto");
   }
 
   if (tipoExtraTampa) {
     tipoExtraTampa.addEventListener("change", atualizarExtraTampa);
+    tipoExtraTampa.addEventListener("input", atualizarExtraTampa);
     atualizarExtraTampa();
   }
 
@@ -467,50 +461,42 @@
       return;
     }
 
-    const fd = new FormData();
-    fd.append("tipoProduto", getTipoSelecionado());
-    fd.append("pagamentoConfirmado", "true");
-    fd.append("fraseTampa", document.getElementById("fraseTampa").value.trim());
-    fd.append("tipoExtraTampa", tipoExtraTampa ? tipoExtraTampa.value : "nenhum");
-    fd.append("dataEspecial", document.getElementById("dataEspecial").value || "");
-    fd.append("textoCurtoTampa", document.getElementById("textoCurtoTampa").value.trim());
-    fd.append("fraseDentro", document.getElementById("fraseDentro").value.trim());
-    fd.append("rua", document.getElementById("rua").value.trim());
-    fd.append("numero", document.getElementById("numero").value.trim());
-    fd.append("bairro", document.getElementById("bairro").value.trim());
-    fd.append("cep", onlyDigits(document.getElementById("cep").value));
-    fd.append("referencia", document.getElementById("referencia").value.trim());
-    fd.append("nomeCompleto", document.getElementById("nomeCompleto").value.trim());
-    fd.append("cpf", onlyDigits(document.getElementById("cpf").value));
-
     const f1 = document.getElementById("foto1").files[0];
     const f2 = document.getElementById("foto2").files[0];
     const f3 = document.getElementById("foto3").files[0];
-    fd.append("foto1", f1);
-    fd.append("foto2", f2);
-    fd.append("foto3", f3);
+
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      showToast("Sem conexão com a internet. Tente novamente.", true);
+      return;
+    }
 
     btnEnviar.disabled = true;
     try {
       const textoWhatsapp = montarTextoWhatsappPedido();
+      const cepDigits = onlyDigits(document.getElementById("cep").value);
+      const cpfDigits = onlyDigits(document.getElementById("cpf").value);
+      const tipoLabel =
+        getTipoSelecionado() === "completa"
+          ? "Caixa Love COMPLETA (com chocolate, palha e LED)"
+          : "Caixa Love SEM chocolate";
 
-      const res = await fetch(urlApiPedido(), {
-        method: "POST",
-        body: fd,
-      });
+      const bodyPedido = {
+        pagamentoConfirmado: "true",
+        fraseTampa: document.getElementById("fraseTampa").value.trim(),
+        fraseDentro: document.getElementById("fraseDentro").value.trim(),
+        tipoExtraTampa: tipoExtraTampa ? tipoExtraTampa.value : "nenhum",
+        dataEspecial: document.getElementById("dataEspecial").value || "",
+        textoCurtoTampa: document.getElementById("textoCurtoTampa").value.trim(),
+        rua: document.getElementById("rua").value.trim(),
+        numero: document.getElementById("numero").value.trim(),
+        bairro: document.getElementById("bairro").value.trim(),
+        cep: cepDigits.replace(/(\d{5})(\d{3})/, "$1-$2"),
+        referencia: document.getElementById("referencia").value.trim(),
+        nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
+        cpf: cpfDigits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"),
+      };
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const msg = data.errors?.[0] || res.statusText || "Falha ao gerar o documento.";
-        showToast(msg, true);
-        return;
-      }
-
-      const blob = await res.blob();
-      const dispo = res.headers.get("Content-Disposition");
-      let filename = "Pedido-Delicatto.docx";
-      const m = dispo && /filename="([^"]+)"/.exec(dispo);
-      if (m) filename = m[1];
+      const { blob, filename } = await gerarDocxPedido(bodyPedido, tipoLabel, [f1, f2, f3]);
 
       ultimoDocxBlob = blob;
       ultimoDocxNome = filename;
@@ -530,9 +516,14 @@
       atualizarExtraTampa();
       atualizarVisibilidadeProduto();
     } catch (err) {
-      showToast("Erro de rede. Tente novamente.", true);
+      console.error(err);
+      const detalhe = err && err.message ? err.message : "falha ao gerar o Word";
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+      const dicaInApp = /Instagram|FBAN|FBAV|Line\/|MicroMessenger|WebView/i.test(ua)
+        ? " Se estiver dentro do Instagram/WhatsApp, abra o link no Safari ou Chrome."
+        : "";
+      showToast(`Não foi possível gerar o documento: ${detalhe}.${dicaInApp}`, true);
     } finally {
       btnEnviar.disabled = false;
     }
   });
-})();

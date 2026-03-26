@@ -49,3 +49,26 @@ Assim o site no ar fica igual ao que você testou em `public/`.
 ## Primeira visita
 
 É preciso **internet** uma vez para baixar o módulo `docx` (esm.sh); em seguida o navegador pode usar cache.
+
+---
+
+## OpenAI (opcional, só no `npm start`)
+
+O pedido e o **Word no GitHub Pages** **não** dependem de OpenAI. Se quiser **testar sugestões de frase** com a API oficial no servidor local:
+
+1. Crie a chave em [OpenAI Platform — API keys](https://platform.openai.com/api-keys).
+2. Copie `.env.example` para `.env` e preencha `OPENAI_API_KEY` (o arquivo `.env` não deve ir para o Git).
+3. Rode `npm start` e use:
+
+```http
+POST /api/ia/sugestao-frase
+Content-Type: application/json
+
+{ "tema": "aniversário de namoro, 2 anos" }
+```
+
+Resposta: `{ "ok": true, "sugestao": "..." }`. Sem chave, a rota responde **503** com mensagem explicando.
+
+SDK oficial Node: [openai/openai-node](https://github.com/openai/openai-node). Documentação da API: [OpenAI Platform](https://platform.openai.com/docs).
+
+**Nunca** coloque a chave no frontend nem no repositório público.

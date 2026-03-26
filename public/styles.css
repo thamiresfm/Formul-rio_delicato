@@ -206,7 +206,13 @@ body {
 
 #wrap-data-especial input[type="date"] {
   width: 100%;
-  max-width: 280px;
+  max-width: 100%;
+}
+
+@media (min-width: 560px) {
+  #wrap-data-especial input[type="date"] {
+    max-width: 320px;
+  }
 }
 
 .field {
@@ -232,6 +238,7 @@ body {
 
 input[type="text"],
 input[type="file"],
+input[type="date"],
 textarea {
   width: 100%;
   font: inherit;
@@ -241,6 +248,19 @@ textarea {
   border-radius: 10px;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Safari iOS / WebKit: sem cor explícita no bloco acima, o texto do type="date" pode ficar invisível */
+input[type="date"] {
+  color-scheme: light;
+  min-height: 2.75rem;
+}
+
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: var(--ink);
 }
 
 input:focus,

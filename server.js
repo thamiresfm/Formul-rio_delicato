@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
@@ -18,6 +20,11 @@ const DOC_IMAGE_MAX_HEIGHT = 720;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const OpenAI = require("openai");
+const openaiClient = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -205,7 +212,14 @@ async function buildDocxBuffer(body, tipoLabel, arquivosFotos) {
   return Packer.toBuffer(doc);
 }
 
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: false,
+    methods: ["GET", "HEAD", "POST", "OPTIONS"],
+    optionsSuccessStatus: 204,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -355,6 +369,55 @@ app.post("/api/pedido", fieldsUpload, async (req, res) => {
   }
 });
 
+/**
+ * Opcional: sugestão de frase curta (romântica) usando a API OpenAI.
+ * A chave fica só no servidor — nunca no frontend nem no GitHub Pages.
+ * Documentação: https://platform.openai.com/docs | SDK: https://github.com/openai/openai-node
+ */
+app.post("/api/ia/sugestao-frase", async (req, res) => {
+  if (!openaiClient) {
+    return res.status(503).json({
+      ok: false,
+      errors: [
+        "OPENAI_API_KEY não configurada. Crie .env na raiz (veja .env.example) ou exporte a variável antes de npm start.",
+      ],
+    });
+  }
+  const tema = String(req.body?.tema || "").trim().slice(0, 500);
+  if (!tema) {
+    return res.status(400).json({
+      ok: false,
+      errors: ['Envie JSON { "tema": "sua ideia em poucas palavras" }.'],
+    });
+  }
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  try {
+    const completion = await openaiClient.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Você ajuda a escrever frases curtas e românticas para personalização de presentes em português do Brasil. Responda só com a frase sugerida, sem aspas, até 45 caracteres quando possível.",
+        },
+        {
+          role: "user",
+          content: `Sugira uma frase curta para a frente de uma caixa de presente. Ideia: ${tema}`,
+        },
+      ],
+      max_tokens: 120,
+    });
+    const text = completion.choices[0]?.message?.content?.trim() || "";
+    return res.json({ ok: true, sugestao: text });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      ok: false,
+      errors: [e.message || "Erro na API OpenAI."],
+    });
+  }
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (res.headersSent) return;
@@ -369,4 +432,7 @@ app.use((err, _req, res, _next) => {
 
 app.listen(PORT, () => {
   console.log(`Delicatto — formulário em http://localhost:${PORT}`);
+  if (openaiClient) {
+    console.log("OpenAI: rota opcional POST /api/ia/sugestao-frase ativa.");
+  }
 });
