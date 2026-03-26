@@ -424,17 +424,17 @@ async function enviarPedidoWhatsappAgora() {
   const temSeisFotos = files && files.length === NUM_FOTOS && files.every(Boolean);
   const temShare = typeof navigator !== "undefined" && navigator.share;
 
+  /**
+   * Celular: sempre tentar 2 compartilhamentos (foto principal + texto, depois outras 5).
+   * Não usar navigator.canShare para decidir — em vários aparelhos canShare({ 5 arquivos }) retorna
+   * false e o fluxo caía no envio único com 6 fotos.
+   */
   if (mobile && temSeisFotos && temShare) {
     const principalNum = parseInt(getFotoPrincipalNumero(), 10);
     if (principalNum >= 1 && principalNum <= NUM_FOTOS) {
       const principalFile = files[principalNum - 1];
       const outrasFiles = files.filter((_, idx) => idx !== principalNum - 1);
-      let podeDividir = true;
-      if (navigator.canShare) {
-        podeDividir =
-          navigator.canShare({ files: [principalFile] }) && navigator.canShare({ files: outrasFiles });
-      }
-      if (podeDividir && principalFile && outrasFiles.length === NUM_FOTOS - 1) {
+      if (principalFile && outrasFiles.length === NUM_FOTOS - 1) {
         let primeiraEtapaOk = false;
         try {
           await navigator.share({
@@ -445,16 +445,23 @@ async function enviarPedidoWhatsappAgora() {
           primeiraEtapaOk = true;
         } catch (err) {
           if (err && err.name === "AbortError") return "cancelado";
-          try {
-            await navigator.share({
-              title: "Delicatto — Caixa Surpresa Coração — texto + 6 imagens",
-              text: texto,
-              files,
-            });
-            return "ok-fotos";
-          } catch (err2) {
-            if (err2 && err2.name === "AbortError") return "cancelado";
-            showToast("Abrindo só o texto no WhatsApp; anexe as 6 fotos na conversa.", true);
+          if (!mobile) {
+            try {
+              await navigator.share({
+                title: "Delicatto — Caixa Surpresa Coração — texto + 6 imagens",
+                text: texto,
+                files,
+              });
+              return "ok-fotos";
+            } catch (err2) {
+              if (err2 && err2.name === "AbortError") return "cancelado";
+              showToast("Abrindo só o texto no WhatsApp; anexe as 6 fotos na conversa.", true);
+            }
+          } else {
+            showToast(
+              "Não foi possível compartilhar só a foto principal. Abrindo o WhatsApp com o texto do pedido — anexe as fotos na conversa.",
+              true
+            );
           }
         }
         if (primeiraEtapaOk) {
@@ -478,7 +485,7 @@ async function enviarPedidoWhatsappAgora() {
     }
   }
 
-  let podeCompartilharComFotos = mobile && temSeisFotos && temShare;
+  let podeCompartilharComFotos = !mobile && temSeisFotos && temShare;
   if (podeCompartilharComFotos && navigator.canShare) {
     podeCompartilharComFotos = navigator.canShare({ files });
   }
