@@ -1,4 +1,4 @@
-/** Número só dígitos (E.164 BR sem +): atendimento Delicatto */
+/** WhatsApp da loja (E.164, sem +): +55 21 99672-8473 — sempre usado em api.whatsapp.com/send */
 const WHATSAPP_LOJA_E164 = "5521996728473";
 const WA_TEXTO_MAX = 3500;
 
@@ -26,7 +26,7 @@ const form = document.getElementById("pedido-form");
 
   let resumoAberto = false;
   let ultimoTextoWhatsapp = "";
-  /** Referências às 3 fotos (File) após enviar o formulário — usadas no compartilhamento nativo. */
+  /** Três arquivos de foto (antes do reset) — usados no compartilhamento nativo com imagens. */
   let ultimoFotosShare = null;
 
   function formatDateBR(iso) {
@@ -263,7 +263,9 @@ const form = document.getElementById("pedido-form");
       })
       .filter(Boolean)
       .join(", ");
-    let t = "*Delicatto Personalizados — novo pedido*\n\n";
+    let t =
+      "📱 *Como enviar:* toque em Compartilhar → WhatsApp → *selecione o contato* da loja (Delicatto +55 21 99672-8473). *O texto do pedido e as 3 imagens (fotos) serão enviados no mesmo envio.*\n\n";
+    t += "*Delicatto Personalizados — novo pedido*\n\n";
     t += `Produto: ${textoTipo(tipo)}\n`;
     t += "Pagamento: confirmado\n";
     t += `Frase frente da caixa: ${document.getElementById("fraseTampa").value.trim()}\n`;
@@ -279,7 +281,27 @@ const form = document.getElementById("pedido-form");
     t += "\n*Cliente*\n";
     t += `Nome: ${document.getElementById("nomeCompleto").value.trim()}\n`;
     t += `CPF: ${formatCpf(document.getElementById("cpf").value)}\n`;
+    t +=
+      "\n— WhatsApp da loja: +55 21 99672-8473. *As 3 imagens também vão em anexo* (mesmo envio que este texto) quando o celular/navegador permitir compartilhar com arquivos.\n";
     return t;
+  }
+
+  /**
+   * Celular: api.whatsapp.com abre o app. Desktop: web.whatsapp.com abre o WhatsApp Web no navegador
+   * (api.whatsapp.com no PC costuma falhar ou ser bloqueado).
+   */
+  function isMobileDispositivo() {
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.userAgentData &&
+      typeof navigator.userAgentData.mobile === "boolean"
+    ) {
+      return navigator.userAgentData.mobile;
+    }
+    const ua = navigator.userAgent || "";
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
+    if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return true;
+    return !!(window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
   }
 
   function abrirUrlWhatsappComTexto(texto) {
@@ -288,26 +310,22 @@ const form = document.getElementById("pedido-form");
       corpo = `${corpo.slice(0, WA_TEXTO_MAX)}\n…(texto truncado)`;
     }
     const encoded = encodeURIComponent(corpo);
-    let url = `https://api.whatsapp.com/send?phone=${WHATSAPP_LOJA_E164}&text=${encoded}`;
+    const phone = WHATSAPP_LOJA_E164;
+    const base = isMobileDispositivo()
+      ? "https://api.whatsapp.com/send"
+      : "https://web.whatsapp.com/send";
+    let url = `${base}?phone=${phone}&text=${encoded}`;
     if (url.length > 8000) {
-      url = `https://api.whatsapp.com/send?phone=${WHATSAPP_LOJA_E164}`;
+      url = `${base}?phone=${phone}`;
     }
     return url;
   }
 
-  function isProvavelMobile() {
-    const ua = navigator.userAgent || "";
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
-    if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return true;
-    return window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
-  }
-
   /**
-   * No celular, nova aba/pop-up costuma ser bloqueado — abre na mesma janela (use "Voltar" no navegador).
-   * No desktop, tenta abrir em nova aba.
+   * Mobile: mesma aba (evita bloqueio de pop-up). Desktop: nova aba com WhatsApp Web.
    */
   function abrirWhatsappUrl(url) {
-    if (isProvavelMobile()) {
+    if (isMobileDispositivo()) {
       window.location.assign(url);
       return;
     }
@@ -333,10 +351,8 @@ const form = document.getElementById("pedido-form");
   }
 
   /**
-   * Abre compartilhamento (texto + fotos) ou WhatsApp com texto. Retorno:
-   * - "cancelado" — usuário fechou o compartilhamento
-   * - "navegando" — celular vai sair da página para o WhatsApp (já limpou o formulário)
-   * - "ok" — concluído; o submit deve chamar finalizarPedidoAposEnvio se ainda não foi
+   * 1) Preferir compartilhamento nativo: texto + 3 fotos — o cliente escolhe WhatsApp e o contato.
+   * 2) Fallback: link direto para o número (só texto; fotos anexar na conversa).
    */
   async function enviarPedidoWhatsappAgora() {
     const texto = ultimoTextoWhatsapp;
@@ -346,31 +362,29 @@ const form = document.getElementById("pedido-form");
       return "cancelado";
     }
 
-    const podeFotos =
-      files &&
-      files.length === 3 &&
-      files.every(Boolean) &&
-      typeof navigator !== "undefined" &&
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files });
+    const temTresFotos = files && files.length === 3 && files.every(Boolean);
+    const temShare = typeof navigator !== "undefined" && navigator.share;
+    let podeCompartilharComFotos = temTresFotos && temShare;
+    if (podeCompartilharComFotos && navigator.canShare) {
+      podeCompartilharComFotos = navigator.canShare({ files });
+    }
 
-    if (podeFotos) {
+    if (podeCompartilharComFotos) {
       try {
         await navigator.share({
-          title: "Pedido Delicatto Personalizados",
+          title: "Delicatto — texto do pedido + 3 imagens",
           text: texto,
           files,
         });
-        return "ok";
+        return "ok-fotos";
       } catch (err) {
         if (err && err.name === "AbortError") return "cancelado";
-        showToast("Abrindo WhatsApp com o texto…", true);
+        showToast("Abrindo só o texto no WhatsApp; anexe as 3 fotos na conversa.", true);
       }
     }
 
     const url = abrirUrlWhatsappComTexto(texto);
-    if (isProvavelMobile()) {
+    if (isMobileDispositivo()) {
       finalizarPedidoAposEnvio();
       window.location.assign(url);
       return "navegando";
@@ -472,7 +486,13 @@ const form = document.getElementById("pedido-form");
         return;
       }
       finalizarPedidoAposEnvio();
-      showToast("Pedido enviado — confira o WhatsApp.");
+      if (resultado === "ok-fotos") {
+        showToast(
+          "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e as 3 imagens vão juntos no envio."
+        );
+      } else {
+        showToast("WhatsApp aberto com o texto — anexe as 3 fotos se ainda não enviou.");
+      }
     } catch (err) {
       console.error(err);
       const detalhe = err && err.message ? err.message : "falha ao processar o pedido";
