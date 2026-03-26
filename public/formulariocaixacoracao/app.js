@@ -11,6 +11,14 @@ const MIN_FOTO_BYTES = 15 * 1024;
 const MAX_FRASE_LATERAL = 35;
 const MAX_FRASE_CORACAO = 20;
 
+function contarFotosAnexadas() {
+  let n = 0;
+  for (let i = 1; i <= NUM_FOTOS; i++) {
+    if (document.getElementById(`foto${i}`).files[0]) n += 1;
+  }
+  return n;
+}
+
 const OPCOES_CAIXA_LABEL = {
   "caixa-completa": "Caixa completa",
   "so-led-palha": "Caixa com led e palha",
@@ -155,11 +163,6 @@ function textoOpcaoLegivel() {
   return k ? OPCOES_CAIXA_LABEL[k] : "—";
 }
 
-function getFotoPrincipalNumero() {
-  const el = form.querySelector('input[name="fotoPrincipal"]:checked');
-  return el ? el.value : null;
-}
-
 function montarLinhaEnderecoCompleto() {
   const rua = document.getElementById("rua").value.trim();
   const numero = document.getElementById("numero").value.trim();
@@ -169,14 +172,6 @@ function montarLinhaEnderecoCompleto() {
   let linha = `${rua}, ${numero} — ${cidade}/${uf}`;
   if (ref) linha += ` — Ref.: ${ref}`;
   return linha;
-}
-
-function textoFotoPrincipalParaWhatsapp() {
-  const n = getFotoPrincipalNumero();
-  if (!n) return "—";
-  const f = document.getElementById(`foto${n}`)?.files?.[0];
-  const nome = f ? f.name : "(arquivo não selecionado)";
-  return `Foto ${n} — ${nome}`;
 }
 
 function atualizarVisibilidadeProduto() {
@@ -209,14 +204,8 @@ function markError(id) {
   if (el) el.classList.add("field-error");
 }
 
-function markFieldsetPrincipalError() {
-  const fs = document.getElementById("fieldset-principal");
-  if (fs) fs.classList.add("field-error");
-}
-
 function validar() {
   clearFieldErrors();
-  document.getElementById("fieldset-principal")?.classList.remove("field-error");
   const erros = [];
 
   if (!getOpcaoCaixa()) {
@@ -252,23 +241,12 @@ function validar() {
   for (let i = 1; i <= NUM_FOTOS; i++) {
     fotos.push(document.getElementById(`foto${i}`).files[0]);
   }
-  if (fotos.some((f) => !f)) {
-    erros.push("Envie as 6 fotos.");
-    for (let i = 1; i <= NUM_FOTOS; i++) markError(`foto${i}`);
-  } else {
-    fotos.forEach((f, i) => {
-      if (f.size < MIN_FOTO_BYTES) {
-        erros.push(`A foto ${i + 1} parece muito pequena; prefira arquivo HD ou original.`);
-        markError(`foto${i + 1}`);
-      }
-    });
-  }
-
-  const principal = getFotoPrincipalNumero();
-  if (!principal) {
-    erros.push("Indique qual é a foto principal.");
-    markFieldsetPrincipalError();
-  }
+  fotos.forEach((f, i) => {
+    if (f && f.size < MIN_FOTO_BYTES) {
+      erros.push(`A foto ${i + 1} parece muito pequena; prefira arquivo HD ou original.`);
+      markError(`foto${i + 1}`);
+    }
+  });
 
   const rua = document.getElementById("rua").value.trim();
   if (rua.length < 2) {
@@ -335,8 +313,12 @@ function montarTextoWhatsappPedido() {
   linhas.push("");
   linhas.push(`Data que deseja colocar: ${dataFmt}`);
   linhas.push("");
-  linhas.push("Fotos: 6 anexos");
-  linhas.push(`Foto principal: ${textoFotoPrincipalParaWhatsapp()}`);
+  {
+    const n = contarFotosAnexadas();
+    linhas.push(
+      n === 0 ? "Fotos: nenhuma anexada (opcional)." : `Fotos: ${n} anexo(s).`
+    );
+  }
   linhas.push("");
   linhas.push(`Endereço completo: ${montarLinhaEnderecoCompleto()}`);
   linhas.push(`CEP: ${cepFmt}`);
@@ -396,9 +378,10 @@ function abrirWhatsappUrl(url) {
 function coletarArquivosFotosOrdenados() {
   const out = [];
   for (let i = 1; i <= NUM_FOTOS; i++) {
-    out.push(document.getElementById(`foto${i}`).files[0]);
+    const f = document.getElementById(`foto${i}`).files[0];
+    if (f) out.push(f);
   }
-  return out.every(Boolean) ? out : null;
+  return out.length ? out : null;
 }
 
 function finalizarPedidoAposEnvio() {
@@ -412,65 +395,6 @@ function finalizarPedidoAposEnvio() {
   ultimoFotosShare = null;
 }
 
-/**
- * O 2º navigator.share() precisa de novo gesto do usuário (requisito dos navegadores).
- * Abre modal com botão que dispara o compartilhamento das outras 5 fotos.
- */
-function aguardarSharePasso2(outrasFiles) {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("modal-share-passo2");
-    const btnOk = document.getElementById("btn-share-outras-fotos");
-    const btnCancel = document.getElementById("btn-share-passo2-cancelar");
-    if (!modal || !btnOk || !btnCancel) {
-      showToast("Não foi possível mostrar o passo 2. Anexe as outras 5 fotos manualmente no WhatsApp.", true);
-      resolve("ok-fotos-duplo-parcial");
-      return;
-    }
-
-    const fechar = () => {
-      modal.classList.add("hidden");
-    };
-
-    const onOk = async () => {
-      btnOk.removeEventListener("click", onOk);
-      btnCancel.removeEventListener("click", onCancel);
-      try {
-        await navigator.share({
-          title: "Delicatto — Outras 5 fotos",
-          text: "Outras 5 fotos do mesmo pedido (Caixa Surpresa Coração).",
-          files: outrasFiles,
-        });
-        fechar();
-        resolve("ok-fotos-duplo");
-      } catch (err) {
-        fechar();
-        if (err && err.name === "AbortError") {
-          resolve("cancelado");
-        } else {
-          showToast(
-            "Não foi possível compartilhar as 5 fotos; anexe-as manualmente na mesma conversa do WhatsApp.",
-            true
-          );
-          resolve("ok-fotos-duplo-parcial");
-        }
-      }
-    };
-
-    const onCancel = () => {
-      btnOk.removeEventListener("click", onOk);
-      btnCancel.removeEventListener("click", onCancel);
-      fechar();
-      showToast("Envie as outras 5 fotos manualmente na mesma conversa do WhatsApp.", true);
-      resolve("ok-fotos-duplo-parcial");
-    };
-
-    modal.classList.remove("hidden");
-    btnOk.addEventListener("click", onOk);
-    btnCancel.addEventListener("click", onCancel);
-    setTimeout(() => btnOk.focus(), 100);
-  });
-}
-
 async function enviarPedidoWhatsappAgora() {
   const texto = ultimoTextoWhatsapp;
   const files = ultimoFotosShare;
@@ -480,69 +404,30 @@ async function enviarPedidoWhatsappAgora() {
   }
 
   const mobile = isMobileDispositivo();
-  const temSeisFotos = files && files.length === NUM_FOTOS && files.every(Boolean);
+  const temAlgumaFoto = files && files.length > 0;
   const temShare = typeof navigator !== "undefined" && navigator.share;
 
-  /**
-   * Celular: sempre tentar 2 compartilhamentos (foto principal + texto, depois outras 5).
-   * Não usar navigator.canShare para decidir — em vários aparelhos canShare({ 5 arquivos }) retorna
-   * false e o fluxo caía no envio único com 6 fotos.
-   */
-  if (mobile && temSeisFotos && temShare) {
-    const principalNum = parseInt(getFotoPrincipalNumero(), 10);
-    if (principalNum >= 1 && principalNum <= NUM_FOTOS) {
-      const principalFile = files[principalNum - 1];
-      const outrasFiles = files.filter((_, idx) => idx !== principalNum - 1);
-      if (principalFile && outrasFiles.length === NUM_FOTOS - 1) {
-        let primeiraEtapaOk = false;
-        try {
-          await navigator.share({
-            title: "Delicatto — Foto principal",
-            text: `Foto principal\n\n${texto}`,
-            files: [principalFile],
-          });
-          primeiraEtapaOk = true;
-        } catch (err) {
-          if (err && err.name === "AbortError") return "cancelado";
-          try {
-            await navigator.share({
-              text: `Foto principal\n\n${texto}`,
-              files: [principalFile],
-            });
-            primeiraEtapaOk = true;
-          } catch (errAlt) {
-            if (errAlt && errAlt.name === "AbortError") return "cancelado";
-          }
-        }
-        if (!primeiraEtapaOk) {
-          showToast(
-            "Não foi possível compartilhar só a foto principal. Abrindo o WhatsApp com o texto do pedido — anexe as fotos na conversa.",
-            true
-          );
-        }
-        if (primeiraEtapaOk) {
-          return await aguardarSharePasso2(outrasFiles);
-        }
-      }
-    }
-  }
-
-  let podeCompartilharComFotos = !mobile && temSeisFotos && temShare;
+  let podeCompartilharComFotos = mobile && temAlgumaFoto && temShare;
   if (podeCompartilharComFotos && navigator.canShare) {
-    podeCompartilharComFotos = navigator.canShare({ files });
+    try {
+      podeCompartilharComFotos = navigator.canShare({ files });
+    } catch (_e) {
+      podeCompartilharComFotos = false;
+    }
   }
 
   if (podeCompartilharComFotos) {
     try {
+      const n = files.length;
       await navigator.share({
-        title: "Delicatto — Caixa Surpresa Coração — texto + 6 imagens",
+        title: `Delicatto — Caixa Surpresa Coração — texto + ${n} imagem(ns)`,
         text: texto,
         files,
       });
       return "ok-fotos";
     } catch (err) {
       if (err && err.name === "AbortError") return "cancelado";
-      showToast("Abrindo só o texto no WhatsApp; anexe as 6 fotos na conversa.", true);
+      showToast("Abrindo só o texto no WhatsApp; anexe as fotos na conversa se desejar.", true);
     }
   }
 
@@ -563,6 +448,9 @@ function montarResumo() {
     const f = document.getElementById(`foto${i}`).files[0];
     return f ? f.name : "—";
   });
+  const fotosResumo = nomeArquivos.every((n) => n === "—")
+    ? "Nenhuma (opcional)"
+    : nomeArquivos.join(" · ");
   const dataFmt = formatDateBR(fd.get("dataDestaque"));
 
   const rows = [
@@ -571,7 +459,6 @@ function montarResumo() {
     ["Frase — lateral da caixa", fd.get("fraseLateral")],
     ["Frase — coração da caixa", fd.get("fraseCoracao")],
     ["Data", dataFmt],
-    ["Foto principal", textoFotoPrincipalParaWhatsapp()],
     ["Fotos (nomes dos arquivos)", nomeArquivos.join(" · ")],
     ["Rua", fd.get("rua")],
     ["Número", fd.get("numero")],
@@ -646,24 +533,25 @@ form.addEventListener("submit", async (e) => {
     if (resultado === "navegando") {
       return;
     }
+    const nFotosEnvio = ultimoFotosShare ? ultimoFotosShare.length : 0;
     finalizarPedidoAposEnvio();
-    if (resultado === "ok-fotos-duplo") {
+    if (resultado === "ok-fotos") {
       showToast(
-        "Foram duas etapas: foto principal com o texto do pedido e, em seguida, as outras 5 fotos. Confira se ambas foram para o WhatsApp da loja (+55 21 99672-8473)."
-      );
-    } else if (resultado === "ok-fotos-duplo-parcial") {
-      showToast(
-        "A foto principal foi enviada; complete anexando as outras 5 fotos na mesma conversa com a loja (+55 21 99672-8473)."
-      );
-    } else if (resultado === "ok-fotos") {
-      showToast(
-        "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e as 6 imagens vão juntos no envio."
+        nFotosEnvio > 0
+          ? `No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e ${nFotosEnvio} imagem(ns) vão juntos no envio.`
+          : "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473)."
       );
     } else if (isMobileDispositivo()) {
-      showToast("WhatsApp aberto com o texto — anexe as 6 fotos se ainda não enviou.");
+      showToast(
+        nFotosEnvio > 0
+          ? "WhatsApp aberto com o texto — anexe mais fotos na conversa se ainda não enviou todas."
+          : "WhatsApp aberto com o texto do pedido."
+      );
     } else {
       showToast(
-        "Abrimos o WhatsApp Web com o texto do pedido. Anexe as 6 fotos na conversa (arrastar ou botão de clipe)."
+        nFotosEnvio > 0
+          ? "Abrimos o WhatsApp Web com o texto do pedido. Anexe as fotos na conversa (arrastar ou botão de clipe)."
+          : "Abrimos o WhatsApp Web com o texto do pedido."
       );
     }
   } catch (err) {

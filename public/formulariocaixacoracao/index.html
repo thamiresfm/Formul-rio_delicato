@@ -115,8 +115,8 @@
         <section id="sec-fotos" class="card hidden" aria-labelledby="step-fotos">
           <h2 id="step-fotos" class="card-title">Fotos</h2>
           <p class="hint hint-fotos-destaque">
-            <strong>6 fotos</strong><br />
-            <strong>1 sendo principal</strong><br />
+            <strong>Até 6 fotos (opcional)</strong><br />
+            Caso não queira adicionar fotos, não é necessário anexar as fotos!<br />
             Para que a qualidade fique melhor, pedimos que as fotos sejam enviadas em HD ou em arquivo.
           </p>
           <div class="photo-grid photo-grid--6">
@@ -169,19 +169,6 @@
               </div>
             </label>
           </div>
-
-          <fieldset class="field field-principal" id="fieldset-principal">
-            <legend class="field-label">Foto principal</legend>
-            <p class="hint">Indique qual das 6 fotos é a principal.</p>
-            <div class="principal-radios" role="radiogroup" aria-label="Número da foto principal">
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="1" required /> Foto 1</label>
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="2" /> Foto 2</label>
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="3" /> Foto 3</label>
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="4" /> Foto 4</label>
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="5" /> Foto 5</label>
-              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="6" /> Foto 6</label>
-            </div>
-          </fieldset>
         </section>
 
         <section id="sec-endereco" class="card hidden" aria-labelledby="step-endereco">
@@ -240,29 +227,13 @@
         <h2 class="card-title">Resumo do pedido</h2>
         <dl class="resumo-list" id="resumo-conteudo"></dl>
         <p class="hint resumo-wa-hint">
-          <strong>No celular ou tablet:</strong> primeiro o sistema abre o compartilhamento da <strong>foto principal</strong> com o
-          texto do pedido (começa com &quot;Foto principal&quot;). Em seguida aparece um <strong>aviso na tela</strong>: toque em
-          &quot;Enviar as outras 5 fotos&quot; para abrir o segundo compartilhamento (obrigatório tocar no botão — o navegador exige
-          isso). Escolha o <strong>WhatsApp</strong> e a mesma conversa da loja (+55 21 99672-8473) nas duas vezes.
-          <strong>No computador:</strong> abrimos o <strong>WhatsApp Web</strong> com o texto — anexe as 6 fotos na conversa.
+          <strong>No celular ou tablet:</strong> ao enviar, pode abrir o compartilhamento com o texto e, se você anexou fotos, as <strong>imagens</strong>;
+          escolha o <strong>WhatsApp</strong> e o contato da loja (+55 21 99672-8473).
+          <strong>No computador:</strong> abrimos o <strong>WhatsApp Web</strong> com o texto do pedido — se houver fotos, anexe-as na conversa.
         </p>
         <div class="actions actions-resumo">
           <button type="button" class="btn btn-ghost" id="btn-voltar">Voltar e editar</button>
           <button type="submit" class="btn btn-primary" form="pedido-form" id="btn-enviar">Enviar pedido</button>
-        </div>
-      </div>
-
-      <div id="modal-share-passo2" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-passo2-titulo">
-        <div class="modal-card">
-          <h2 id="modal-passo2-titulo" class="modal-title">Enviar as outras 5 fotos</h2>
-          <p class="modal-text">
-            A <strong>foto principal</strong> e o <strong>texto do pedido</strong> já foram compartilhados. Toque no botão abaixo para abrir o
-            compartilhamento das <strong>outras 5 fotos</strong> e escolha o <strong>WhatsApp</strong> na mesma conversa da loja.
-          </p>
-          <div class="modal-actions">
-            <button type="button" class="btn btn-primary" id="btn-share-outras-fotos">Enviar as outras 5 fotos</button>
-            <button type="button" class="btn btn-ghost" id="btn-share-passo2-cancelar">Pular (anexo manual)</button>
-          </div>
         </div>
       </div>
 

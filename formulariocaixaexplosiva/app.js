@@ -174,6 +174,14 @@ const MAX_FRASE_SEGUNDA_TAMPA = 40;
 const MAX_FRASE_TERCEIRA_TAMPA = 10;
 const MAX_FRASE_MEIO_CAIXA = 50;
 
+function contarFotosAnexadas() {
+  let n = 0;
+  for (let i = 1; i <= NUM_FOTOS; i++) {
+    if (document.getElementById(`foto${i}`).files[0]) n += 1;
+  }
+  return n;
+}
+
 function validar() {
   clearFieldErrors();
   const erros = [];
@@ -216,17 +224,12 @@ function validar() {
   for (let i = 1; i <= NUM_FOTOS; i++) {
     fotos.push(document.getElementById(`foto${i}`).files[0]);
   }
-  if (fotos.some((f) => !f)) {
-    erros.push(`Envie as ${NUM_FOTOS} fotos.`);
-    for (let i = 1; i <= NUM_FOTOS; i++) markError(`foto${i}`);
-  } else {
-    fotos.forEach((f, i) => {
-      if (f.size < MIN_FOTO_BYTES) {
-        erros.push(`A foto ${i + 1} parece muito pequena; prefira arquivo HD ou original.`);
-        markError(`foto${i + 1}`);
-      }
-    });
-  }
+  fotos.forEach((f, i) => {
+    if (f && f.size < MIN_FOTO_BYTES) {
+      erros.push(`A foto ${i + 1} parece muito pequena; prefira arquivo HD ou original.`);
+      markError(`foto${i + 1}`);
+    }
+  });
 
   const rua = document.getElementById("rua").value.trim();
   if (rua.length < 2) {
@@ -304,7 +307,12 @@ function montarTextoWhatsappPedido() {
   linhas.push(`Frase para terceira tampa: ${document.getElementById("fraseTerceiraTampa").value.trim()}`);
   linhas.push(`Frase para o meio da caixa: ${document.getElementById("fraseMeioCaixa").value.trim()}`);
   linhas.push("");
-  linhas.push("Fotos: 4 anexos");
+  {
+    const n = contarFotosAnexadas();
+    linhas.push(
+      n === 0 ? "Fotos: nenhuma anexada (opcional)." : `Fotos: ${n} anexo(s).`
+    );
+  }
   linhas.push("");
   linhas.push(`Endereço: ${montarLinhaEnderecoCompleto()}`);
   linhas.push(`CEP: ${cepFmt}`);
@@ -361,6 +369,15 @@ function abrirWhatsappUrl(url) {
   document.body.removeChild(a);
 }
 
+function coletarArquivosFotosOrdenados() {
+  const out = [];
+  for (let i = 1; i <= NUM_FOTOS; i++) {
+    const f = document.getElementById(`foto${i}`).files[0];
+    if (f) out.push(f);
+  }
+  return out.length ? out : null;
+}
+
 function finalizarPedidoAposEnvio() {
   resumoAberto = false;
   panelResumo.classList.add("hidden");
@@ -381,24 +398,29 @@ async function enviarPedidoWhatsappAgora() {
   }
 
   const mobile = isMobileDispositivo();
-  const temQuatroFotos = files && files.length === NUM_FOTOS && files.every(Boolean);
+  const temAlgumaFoto = files && files.length > 0;
   const temShare = typeof navigator !== "undefined" && navigator.share;
-  let podeCompartilharComFotos = mobile && temQuatroFotos && temShare;
+  let podeCompartilharComFotos = mobile && temAlgumaFoto && temShare;
   if (podeCompartilharComFotos && navigator.canShare) {
-    podeCompartilharComFotos = navigator.canShare({ files });
+    try {
+      podeCompartilharComFotos = navigator.canShare({ files });
+    } catch (_e) {
+      podeCompartilharComFotos = false;
+    }
   }
 
   if (podeCompartilharComFotos) {
     try {
+      const n = files.length;
       await navigator.share({
-        title: "Delicatto — Caixa Explosiva — texto + 4 imagens",
+        title: `Delicatto — Caixa Explosiva — texto + ${n} imagem(ns)`,
         text: texto,
         files,
       });
       return "ok-fotos";
     } catch (err) {
       if (err && err.name === "AbortError") return "cancelado";
-      showToast("Abrindo só o texto no WhatsApp; anexe as 4 fotos na conversa.", true);
+      showToast("Abrindo só o texto no WhatsApp; anexe as fotos na conversa se desejar.", true);
     }
   }
 
@@ -419,6 +441,9 @@ function montarResumo() {
     const f = document.getElementById(`foto${i}`).files[0];
     return f ? f.name : "—";
   });
+  const fotosResumo = nomeArquivos.every((n) => n === "—")
+    ? "Nenhuma (opcional)"
+    : nomeArquivos.join(" · ");
 
   const rows = [
     ["Produto", `Caixa Explosiva — ${textoVariacaoChocolateLegivel()}`],
@@ -426,7 +451,7 @@ function montarResumo() {
     ["Frase — segunda tampa", fd.get("fraseSegundaTampa")],
     ["Frase — terceira tampa", fd.get("fraseTerceiraTampa")],
     ["Frase — meio da caixa", fd.get("fraseMeioCaixa")],
-    ["Fotos (nomes dos arquivos)", nomeArquivos.join(" · ")],
+    ["Fotos (nomes dos arquivos)", fotosResumo],
     ["Rua", fd.get("rua")],
     ["Número", fd.get("numero")],
     ["Bairro", fd.get("bairro")],
@@ -490,11 +515,7 @@ form.addEventListener("submit", async (e) => {
 
   btnEnviar.disabled = true;
   try {
-    const f1 = document.getElementById("foto1").files[0];
-    const f2 = document.getElementById("foto2").files[0];
-    const f3 = document.getElementById("foto3").files[0];
-    const f4 = document.getElementById("foto4").files[0];
-    ultimoFotosShare = f1 && f2 && f3 && f4 ? [f1, f2, f3, f4] : null;
+    ultimoFotosShare = coletarArquivosFotosOrdenados();
 
     ultimoTextoWhatsapp = montarTextoWhatsappPedido();
 
@@ -505,16 +526,25 @@ form.addEventListener("submit", async (e) => {
     if (resultado === "navegando") {
       return;
     }
+    const nFotosEnvio = ultimoFotosShare ? ultimoFotosShare.length : 0;
     finalizarPedidoAposEnvio();
     if (resultado === "ok-fotos") {
       showToast(
-        "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e as 4 imagens vão juntos no envio."
+        nFotosEnvio > 0
+          ? `No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e ${nFotosEnvio} imagem(ns) vão juntos no envio.`
+          : "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473)."
       );
     } else if (isMobileDispositivo()) {
-      showToast("WhatsApp aberto com o texto — anexe as 4 fotos se ainda não enviou.");
+      showToast(
+        nFotosEnvio > 0
+          ? "WhatsApp aberto com o texto — anexe mais fotos na conversa se ainda não enviou todas."
+          : "WhatsApp aberto com o texto do pedido."
+      );
     } else {
       showToast(
-        "Abrimos o WhatsApp Web com o texto do pedido. Anexe as 4 fotos na conversa (arrastar ou botão de clipe)."
+        nFotosEnvio > 0
+          ? "Abrimos o WhatsApp Web com o texto do pedido. Anexe as fotos na conversa (arrastar ou botão de clipe)."
+          : "Abrimos o WhatsApp Web com o texto do pedido."
       );
     }
   } catch (err) {
