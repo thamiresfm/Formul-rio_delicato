@@ -423,6 +423,61 @@ async function enviarPedidoWhatsappAgora() {
   const mobile = isMobileDispositivo();
   const temSeisFotos = files && files.length === NUM_FOTOS && files.every(Boolean);
   const temShare = typeof navigator !== "undefined" && navigator.share;
+
+  if (mobile && temSeisFotos && temShare) {
+    const principalNum = parseInt(getFotoPrincipalNumero(), 10);
+    if (principalNum >= 1 && principalNum <= NUM_FOTOS) {
+      const principalFile = files[principalNum - 1];
+      const outrasFiles = files.filter((_, idx) => idx !== principalNum - 1);
+      let podeDividir = true;
+      if (navigator.canShare) {
+        podeDividir =
+          navigator.canShare({ files: [principalFile] }) && navigator.canShare({ files: outrasFiles });
+      }
+      if (podeDividir && principalFile && outrasFiles.length === NUM_FOTOS - 1) {
+        let primeiraEtapaOk = false;
+        try {
+          await navigator.share({
+            title: "Delicatto — Foto principal",
+            text: `Foto principal\n\n${texto}`,
+            files: [principalFile],
+          });
+          primeiraEtapaOk = true;
+        } catch (err) {
+          if (err && err.name === "AbortError") return "cancelado";
+          try {
+            await navigator.share({
+              title: "Delicatto — Caixa Surpresa Coração — texto + 6 imagens",
+              text: texto,
+              files,
+            });
+            return "ok-fotos";
+          } catch (err2) {
+            if (err2 && err2.name === "AbortError") return "cancelado";
+            showToast("Abrindo só o texto no WhatsApp; anexe as 6 fotos na conversa.", true);
+          }
+        }
+        if (primeiraEtapaOk) {
+          try {
+            await navigator.share({
+              title: "Delicatto — Outras 5 fotos",
+              text: "Outras 5 fotos do mesmo pedido (Caixa Surpresa Coração).",
+              files: outrasFiles,
+            });
+            return "ok-fotos-duplo";
+          } catch (err) {
+            if (err && err.name === "AbortError") return "cancelado";
+            showToast(
+              "A foto principal já foi compartilhada; anexe as outras 5 fotos na mesma conversa do WhatsApp.",
+              true
+            );
+            return "ok-fotos-duplo-parcial";
+          }
+        }
+      }
+    }
+  }
+
   let podeCompartilharComFotos = mobile && temSeisFotos && temShare;
   if (podeCompartilharComFotos && navigator.canShare) {
     podeCompartilharComFotos = navigator.canShare({ files });
@@ -543,7 +598,15 @@ form.addEventListener("submit", async (e) => {
       return;
     }
     finalizarPedidoAposEnvio();
-    if (resultado === "ok-fotos") {
+    if (resultado === "ok-fotos-duplo") {
+      showToast(
+        "Foram duas etapas: foto principal com o texto do pedido e, em seguida, as outras 5 fotos. Confira se ambas foram para o WhatsApp da loja (+55 21 99672-8473)."
+      );
+    } else if (resultado === "ok-fotos-duplo-parcial") {
+      showToast(
+        "A foto principal foi enviada; complete anexando as outras 5 fotos na mesma conversa com a loja (+55 21 99672-8473)."
+      );
+    } else if (resultado === "ok-fotos") {
       showToast(
         "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e as 6 imagens vão juntos no envio."
       );
