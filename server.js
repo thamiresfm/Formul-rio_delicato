@@ -224,13 +224,19 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.get("/formularioDoProduto", (_req, res) => {
-  res.redirect(301, "/formularioCaixaLove/");
+  res.redirect(301, "/formulariocaixalove/");
 });
 app.get("/formularioDoProduto/", (_req, res) => {
-  res.redirect(301, "/formularioCaixaLove/");
+  res.redirect(301, "/formulariocaixalove/");
 });
 app.get("/formularioCaixaLove", (_req, res) => {
-  res.redirect(301, "/formularioCaixaLove/");
+  res.redirect(301, "/formulariocaixalove/");
+});
+app.get("/formularioCaixaLove/", (_req, res) => {
+  res.redirect(301, "/formulariocaixalove/");
+});
+app.get("/formulariocaixalove", (_req, res) => {
+  res.redirect(301, "/formulariocaixalove/");
 });
 app.use(express.static(path.join(__dirname, "public")));
 
