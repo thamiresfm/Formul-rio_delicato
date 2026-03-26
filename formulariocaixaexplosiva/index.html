@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/formulariocaixaexplosiva/" />
+    <link rel="canonical" href="https://delicattopersonalizados.com.br/formulariocaixaexplosiva/" />
+    <title>Caixa Explosiva — Delicatto Personalizados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Great+Vibes&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-bg" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <img
+        src="./assets/logo-delicatto.png"
+        alt="Delicatto Personalizados"
+        class="brand-logo"
+        width="280"
+        height="auto"
+      />
+      <p class="tagline">Presentes personalizados com carinho</p>
+    </header>
+
+    <main class="main-content">
+      <form id="pedido-form" novalidate>
+        <section class="card" aria-labelledby="titulo-explosiva">
+          <h1 id="titulo-explosiva" class="card-title">Caixa Explosiva</h1>
+          <p class="card-lead">
+            Primeiro escolha a variação da caixa (com ou sem chocolate). Em seguida, o restante do formulário será exibido. Use
+            &quot;Ver resumo antes de enviar&quot; e confira tudo antes de enviar ao WhatsApp da loja.
+          </p>
+          <p class="status-pago" role="status">
+            Status do pedido: <strong>Pagamento confirmado</strong> ✅
+          </p>
+
+          <p class="card-lead card-lead--tight">Escolha a variação da caixa:</p>
+          <div class="product-grid product-grid--2" role="radiogroup" aria-label="Chocolate">
+            <label class="product-option">
+              <input type="radio" name="tipoChocolate" id="tipoChocolate-com" value="com-chocolate" required />
+              <span class="product-option-inner">
+                <span class="product-name">Com chocolate</span>
+                <span class="product-desc">Caixa Explosiva inclui chocolate.</span>
+              </span>
+            </label>
+            <label class="product-option">
+              <input type="radio" name="tipoChocolate" id="tipoChocolate-sem" value="sem-chocolate" />
+              <span class="product-option-inner">
+                <span class="product-name">Sem chocolate</span>
+                <span class="product-desc">Caixa Explosiva sem chocolate.</span>
+              </span>
+            </label>
+          </div>
+          <div id="banner-chocolate-com" class="info-banner info-banner--highlight hidden" role="status">
+            <strong>Com chocolate:</strong> seu pedido inclui <em>chocolate</em> na Caixa Explosiva.
+          </div>
+          <div id="banner-chocolate-sem" class="info-banner info-banner--soft hidden" role="status">
+            <strong>Sem chocolate:</strong> pedido da Caixa Explosiva sem itens de chocolate.
+          </div>
+        </section>
+
+        <section id="sec-frases" class="card hidden" aria-labelledby="step-frases">
+          <h2 id="step-frases" class="card-title">Frases</h2>
+          <label class="field">
+            <span class="field-label">Frase para segunda tampa <span class="hint-inline">(máx. 40 caracteres)</span></span>
+            <input type="text" name="fraseSegundaTampa" id="fraseSegundaTampa" autocomplete="off" maxlength="40" required />
+          </label>
+          <label class="field">
+            <span class="field-label">Frase para terceira tampa <span class="hint-inline">(máx. 10 caracteres)</span></span>
+            <input type="text" name="fraseTerceiraTampa" id="fraseTerceiraTampa" autocomplete="off" maxlength="10" required />
+          </label>
+          <label class="field">
+            <span class="field-label">Frase para o meio da caixa <span class="hint-inline">(máx. 50 caracteres)</span></span>
+            <textarea name="fraseMeioCaixa" id="fraseMeioCaixa" rows="3" maxlength="50" required placeholder="Sua mensagem"></textarea>
+          </label>
+        </section>
+
+        <section id="sec-fotos" class="card hidden" aria-labelledby="step-fotos">
+          <h2 id="step-fotos" class="card-title">Fotos (4 em alta qualidade)</h2>
+          <p class="hint">
+            Para uma melhor qualidade das fotos, pedimos que, se possível, sejam enviadas em HD ou em arquivo. Use JPEG, PNG ou
+            WebP. Evite prints muito comprimidos.
+          </p>
+          <div class="photo-grid photo-grid--4">
+            <label class="field">
+              <span class="field-label">Foto 1</span>
+              <input type="file" name="foto1" id="foto1" accept="image/jpeg,image/png,image/webp,image/heic" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Foto 2</span>
+              <input type="file" name="foto2" id="foto2" accept="image/jpeg,image/png,image/webp,image/heic" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Foto 3</span>
+              <input type="file" name="foto3" id="foto3" accept="image/jpeg,image/png,image/webp,image/heic" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Foto 4</span>
+              <input type="file" name="foto4" id="foto4" accept="image/jpeg,image/png,image/webp,image/heic" required />
+            </label>
+          </div>
+        </section>
+
+        <section id="sec-endereco" class="card hidden" aria-labelledby="step-endereco">
+          <h2 id="step-endereco" class="card-title">Endereço de entrega</h2>
+          <label class="field field-cep-primeiro">
+            <span class="field-label">CEP</span>
+            <input type="text" name="cep" id="cep" inputmode="numeric" placeholder="00000-000" maxlength="9" required autocomplete="postal-code" />
+          </label>
+          <p class="hint cep-hint">Ao completar o CEP, buscamos rua, bairro, cidade e UF automaticamente.</p>
+          <div class="address-grid">
+            <label class="field field-span-2">
+              <span class="field-label">Rua</span>
+              <input type="text" name="rua" id="rua" autocomplete="street-address" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Número</span>
+              <input type="text" name="numero" id="numero" inputmode="numeric" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Bairro</span>
+              <input type="text" name="bairro" id="bairro" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Cidade</span>
+              <input type="text" name="cidade" id="cidade" autocomplete="address-level2" required />
+            </label>
+            <label class="field">
+              <span class="field-label">UF</span>
+              <input type="text" name="uf" id="uf" inputmode="text" maxlength="2" placeholder="RJ" required aria-label="UF, duas letras" />
+            </label>
+            <label class="field field-span-2">
+              <span class="field-label">Ponto de referência <span class="optional">(se houver)</span></span>
+              <input type="text" name="referencia" id="referencia" maxlength="200" />
+            </label>
+          </div>
+        </section>
+
+        <section id="sec-cliente" class="card hidden" aria-labelledby="step-cliente">
+          <h2 id="step-cliente" class="card-title">Dados do cliente</h2>
+          <label class="field">
+            <span class="field-label">Nome completo</span>
+            <input type="text" name="nomeCompleto" id="nomeCompleto" autocomplete="name" required />
+          </label>
+          <label class="field">
+            <span class="field-label">CPF <span class="hint-inline">(para emissão de etiqueta dos Correios)</span></span>
+            <input type="text" name="cpf" id="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required />
+          </label>
+        </section>
+
+        <div id="actions-primary" class="actions hidden">
+          <button type="button" class="btn btn-secondary" id="btn-resumo">Ver resumo antes de enviar</button>
+        </div>
+      </form>
+
+      <div id="panel-resumo" class="card panel-resumo hidden" aria-live="polite">
+        <h2 class="card-title">Resumo do pedido</h2>
+        <dl class="resumo-list" id="resumo-conteudo"></dl>
+        <p class="hint resumo-wa-hint">
+          <strong>No celular ou tablet:</strong> ao enviar, pode abrir o compartilhamento com o texto e as <strong>4 imagens</strong>;
+          escolha o <strong>WhatsApp</strong> e o contato da loja (+55 21 99672-8473).
+          <strong>No computador:</strong> abrimos o <strong>WhatsApp Web</strong> já com o texto do pedido — anexe as 4 fotos na conversa.
+        </p>
+        <div class="actions actions-resumo">
+          <button type="button" class="btn btn-ghost" id="btn-voltar">Voltar e editar</button>
+          <button type="submit" class="btn btn-primary" form="pedido-form" id="btn-enviar">Enviar pedido</button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden" role="status"></div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© Delicatto Personalizados — pedido via formulário oficial</p>
+      <p class="footer-links">
+        <a href="https://wa.me/5521996728473" target="_blank" rel="noopener noreferrer">WhatsApp +55 21 99672-8473</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "sync-pages": "rm -rf formularioDoProduto formularioCaixaLove formulariocaixalove && mkdir -p formulariocaixalove/assets formularioDoProduto formularioCaixaLove && cp -f public/stubs/formularioCaixaLove-redirect.html formularioCaixaLove/index.html && cp -f public/formulariocaixalove/index.html public/formulariocaixalove/app.js public/formulariocaixalove/styles.css formulariocaixalove/ && cp -f public/formulariocaixalove/assets/logo-delicatto.png formulariocaixalove/assets/ && cp -f public/formularioDoProduto/index.html formularioDoProduto/ && cp -f public/index.html . && rm -f app.js styles.css && rm -rf assets && touch .nojekyll"
+    "sync-pages": "rm -rf formularioDoProduto formularioCaixaLove formulariocaixalove formulariocaixaexplosiva && mkdir -p formulariocaixalove/assets formularioDoProduto formularioCaixaLove formulariocaixaexplosiva/assets && cp -f public/stubs/formularioCaixaLove-redirect.html formularioCaixaLove/index.html && cp -f public/formulariocaixalove/index.html public/formulariocaixalove/app.js public/formulariocaixalove/styles.css formulariocaixalove/ && cp -f public/formulariocaixalove/assets/logo-delicatto.png formulariocaixalove/assets/ && cp -f public/formularioDoProduto/index.html formularioDoProduto/ && cp -f public/formulariocaixaexplosiva/index.html public/formulariocaixaexplosiva/app.js public/formulariocaixaexplosiva/styles.css formulariocaixaexplosiva/ && cp -f public/formulariocaixaexplosiva/assets/logo-delicatto.png formulariocaixaexplosiva/assets/ && cp -f public/index.html . && rm -f app.js styles.css && rm -rf assets && touch .nojekyll"
   },
   "engines": {
     "node": ">=18"
