@@ -185,25 +185,17 @@
       <div id="panel-resumo" class="card panel-resumo hidden" aria-live="polite">
         <h2 class="card-title">Resumo do pedido</h2>
         <dl class="resumo-list" id="resumo-conteudo"></dl>
+        <p class="hint resumo-wa-hint">
+          Ao tocar em <strong>Enviar pedido</strong>, abrimos o WhatsApp da loja. No celular, quando possível, o sistema
+          envia <strong>texto e as 3 fotos</strong> juntos; no PC, costuma abrir só o texto — anexe as fotos na conversa.
+        </p>
         <div class="actions actions-resumo">
           <button type="button" class="btn btn-ghost" id="btn-voltar">Voltar e editar</button>
-          <button type="submit" class="btn btn-primary" form="pedido-form" id="btn-enviar">Confirmar pedido</button>
+          <button type="submit" class="btn btn-primary" form="pedido-form" id="btn-enviar">Enviar pedido</button>
         </div>
       </div>
 
       <div id="toast" class="toast hidden" role="status"></div>
-
-      <div id="wa-pos-pedido" class="card wa-card hidden" role="region" aria-labelledby="wa-pos-titulo">
-        <h2 id="wa-pos-titulo" class="wa-card-title">Enviar pedido</h2>
-        <p class="hint wa-card-hint">
-          Toque no botão abaixo para abrir o WhatsApp e enviar o texto do pedido para
-          <strong>+55 21 99672-8473</strong>. No celular, o WhatsApp pode abrir na mesma janela — use
-          <strong>Voltar</strong> no navegador para retornar ao site. Você pode anexar as fotos na conversa depois.
-        </p>
-        <div class="wa-actions">
-          <button type="button" class="btn btn-primary wa-card-btn" id="btn-enviar-whatsapp">Enviar pedido</button>
-        </div>
-      </div>
     </main>
 
     <footer class="site-footer">

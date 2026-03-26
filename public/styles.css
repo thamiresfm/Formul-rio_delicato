@@ -408,6 +408,11 @@ textarea.field-error {
   margin-top: 1rem;
 }
 
+.resumo-wa-hint {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
 .resumo-list {
   margin: 0;
   display: grid;

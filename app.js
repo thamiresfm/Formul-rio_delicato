@@ -23,11 +23,11 @@ const form = document.getElementById("pedido-form");
   const wrapDataEspecial = document.getElementById("wrap-data-especial");
   const wrapEuTeAmo = document.getElementById("wrap-eu-te-amo");
   const wrapTextoCurto = document.getElementById("wrap-texto-curto");
-  const waPosPedido = document.getElementById("wa-pos-pedido");
-  const btnEnviarWhatsapp = document.getElementById("btn-enviar-whatsapp");
 
   let resumoAberto = false;
   let ultimoTextoWhatsapp = "";
+  /** Referências às 3 fotos (File) após enviar o formulário — usadas no compartilhamento nativo. */
+  let ultimoFotosShare = null;
 
   function formatDateBR(iso) {
     if (!iso) return "";
@@ -322,14 +322,61 @@ const form = document.getElementById("pedido-form");
     document.body.removeChild(a);
   }
 
-  if (btnEnviarWhatsapp) {
-    btnEnviarWhatsapp.addEventListener("click", () => {
-      if (!ultimoTextoWhatsapp) {
-        showToast("Dados do pedido indisponíveis. Envie o formulário novamente.", true);
-        return;
+  function finalizarPedidoAposEnvio() {
+    resumoAberto = false;
+    panelResumo.classList.add("hidden");
+    form.reset();
+    atualizarExtraTampa();
+    atualizarVisibilidadeProduto();
+    ultimoTextoWhatsapp = "";
+    ultimoFotosShare = null;
+  }
+
+  /**
+   * Abre compartilhamento (texto + fotos) ou WhatsApp com texto. Retorno:
+   * - "cancelado" — usuário fechou o compartilhamento
+   * - "navegando" — celular vai sair da página para o WhatsApp (já limpou o formulário)
+   * - "ok" — concluído; o submit deve chamar finalizarPedidoAposEnvio se ainda não foi
+   */
+  async function enviarPedidoWhatsappAgora() {
+    const texto = ultimoTextoWhatsapp;
+    const files = ultimoFotosShare;
+    if (!texto) {
+      showToast("Erro ao montar o pedido.", true);
+      return "cancelado";
+    }
+
+    const podeFotos =
+      files &&
+      files.length === 3 &&
+      files.every(Boolean) &&
+      typeof navigator !== "undefined" &&
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files });
+
+    if (podeFotos) {
+      try {
+        await navigator.share({
+          title: "Pedido Delicatto Personalizados",
+          text: texto,
+          files,
+        });
+        return "ok";
+      } catch (err) {
+        if (err && err.name === "AbortError") return "cancelado";
+        showToast("Abrindo WhatsApp com o texto…", true);
       }
-      abrirWhatsappUrl(abrirUrlWhatsappComTexto(ultimoTextoWhatsapp));
-    });
+    }
+
+    const url = abrirUrlWhatsappComTexto(texto);
+    if (isProvavelMobile()) {
+      finalizarPedidoAposEnvio();
+      window.location.assign(url);
+      return "navegando";
+    }
+    abrirWhatsappUrl(url);
+    return "ok";
   }
 
   function montarResumo() {
@@ -375,7 +422,7 @@ const form = document.getElementById("pedido-form");
       return;
     }
     ultimoTextoWhatsapp = "";
-    if (waPosPedido) waPosPedido.classList.add("hidden");
+    ultimoFotosShare = null;
     montarResumo();
     resumoAberto = true;
     panelResumo.classList.remove("hidden");
@@ -388,7 +435,7 @@ const form = document.getElementById("pedido-form");
     form.scrollIntoView({ behavior: "smooth" });
   });
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const erros = validar();
     if (erros.length) {
@@ -410,19 +457,22 @@ const form = document.getElementById("pedido-form");
 
     btnEnviar.disabled = true;
     try {
-      const textoWhatsapp = montarTextoWhatsappPedido();
-      ultimoTextoWhatsapp = textoWhatsapp;
+      const f1 = document.getElementById("foto1").files[0];
+      const f2 = document.getElementById("foto2").files[0];
+      const f3 = document.getElementById("foto3").files[0];
+      ultimoFotosShare = f1 && f2 && f3 ? [f1, f2, f3] : null;
 
-      showToast("Pedido pronto! Toque em Enviar pedido para abrir o WhatsApp.");
-      if (waPosPedido) {
-        waPosPedido.classList.remove("hidden");
-        waPosPedido.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      ultimoTextoWhatsapp = montarTextoWhatsappPedido();
+
+      const resultado = await enviarPedidoWhatsappAgora();
+      if (resultado === "cancelado") {
+        return;
       }
-      resumoAberto = false;
-      panelResumo.classList.add("hidden");
-      form.reset();
-      atualizarExtraTampa();
-      atualizarVisibilidadeProduto();
+      if (resultado === "navegando") {
+        return;
+      }
+      finalizarPedidoAposEnvio();
+      showToast("Pedido enviado — confira o WhatsApp.");
     } catch (err) {
       console.error(err);
       const detalhe = err && err.message ? err.message : "falha ao processar o pedido";
