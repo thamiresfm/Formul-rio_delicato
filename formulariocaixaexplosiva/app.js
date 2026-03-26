@@ -1,3 +1,8 @@
+import {
+  limparTodasPreviewsFotos,
+  wireFotoPreviewListeners,
+} from "../js/foto-preview.js";
+
 /** WhatsApp da loja (E.164): +55 21 99672-8473 */
 const WHATSAPP_LOJA_E164 = "5521996728473";
 const WA_TEXTO_MAX = 3500;
@@ -128,8 +133,8 @@ function getTipoChocolate() {
 
 function textoVariacaoChocolateLegivel() {
   const t = getTipoChocolate();
-  if (t === "com-chocolate") return "Com chocolate";
-  if (t === "sem-chocolate") return "Sem chocolate";
+  if (t === "com-chocolate") return "Caixa Com chocolate";
+  if (t === "sem-chocolate") return "Caixa Sem chocolate";
   return "—";
 }
 
@@ -175,7 +180,7 @@ function validar() {
 
   const tipoChoc = getTipoChocolate();
   if (!tipoChoc) {
-    erros.push("Escolha a variação da caixa: com chocolate ou sem chocolate (obrigatório).");
+    erros.push("Escolha a variação: Caixa Com chocolate ou Caixa Sem chocolate (obrigatório).");
     markError("tipoChocolate-com");
     markError("tipoChocolate-sem");
   }
@@ -292,7 +297,7 @@ function montarTextoWhatsappPedido() {
   const cepFmt = formatCep(document.getElementById("cep").value);
   const linhas = [];
   linhas.push("Caixa Explosiva");
-  linhas.push(`Variação: ${textoVariacaoChocolateLegivel().toLowerCase()}`);
+  linhas.push(`Variação: ${textoVariacaoChocolateLegivel()}`);
   linhas.push("Pagamento confirmado ✅");
   linhas.push("");
   linhas.push(`Frase para segunda tampa: ${document.getElementById("fraseSegundaTampa").value.trim()}`);
@@ -360,6 +365,7 @@ function finalizarPedidoAposEnvio() {
   resumoAberto = false;
   panelResumo.classList.add("hidden");
   form.reset();
+  limparTodasPreviewsFotos(NUM_FOTOS);
   ultimoCepPreenchidoViaApi = "";
   ultimoTextoWhatsapp = "";
   ultimoFotosShare = null;
@@ -415,7 +421,7 @@ function montarResumo() {
   });
 
   const rows = [
-    ["Produto", `Caixa Explosiva — ${textoVariacaoChocolateLegivel().toLowerCase()}`],
+    ["Produto", `Caixa Explosiva — ${textoVariacaoChocolateLegivel()}`],
     ["Pagamento", "Confirmado ✅"],
     ["Frase — segunda tampa", fd.get("fraseSegundaTampa")],
     ["Frase — terceira tampa", fd.get("fraseTerceiraTampa")],
@@ -523,5 +529,7 @@ form.addEventListener("submit", async (e) => {
     btnEnviar.disabled = false;
   }
 });
+
+wireFotoPreviewListeners(NUM_FOTOS);
 
 atualizarBannersChocolate();

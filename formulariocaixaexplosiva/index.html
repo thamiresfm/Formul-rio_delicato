@@ -33,8 +33,8 @@
         <section class="card" aria-labelledby="titulo-explosiva">
           <h1 id="titulo-explosiva" class="card-title">Caixa Explosiva</h1>
           <p class="card-lead">
-            Primeiro escolha a variação da caixa (com ou sem chocolate). Em seguida, o restante do formulário será exibido. Use
-            &quot;Ver resumo antes de enviar&quot; e confira tudo antes de enviar ao WhatsApp da loja.
+            Primeiro escolha entre <strong>Caixa Com chocolate</strong> ou <strong>Caixa Sem chocolate</strong>. Em seguida, o restante do
+            formulário será exibido. Use &quot;Ver resumo antes de enviar&quot; e confira tudo antes de enviar ao WhatsApp da loja.
           </p>
           <p class="status-pago" role="status">
             Status do pedido: <strong>Pagamento confirmado</strong> ✅
@@ -45,23 +45,23 @@
             <label class="product-option">
               <input type="radio" name="tipoChocolate" id="tipoChocolate-com" value="com-chocolate" required />
               <span class="product-option-inner">
-                <span class="product-name">Com chocolate</span>
-                <span class="product-desc">Caixa Explosiva inclui chocolate.</span>
+                <span class="product-name">Caixa Com chocolate</span>
+                <span class="product-desc">Inclui chocolate na Caixa Explosiva.</span>
               </span>
             </label>
             <label class="product-option">
               <input type="radio" name="tipoChocolate" id="tipoChocolate-sem" value="sem-chocolate" />
               <span class="product-option-inner">
-                <span class="product-name">Sem chocolate</span>
-                <span class="product-desc">Caixa Explosiva sem chocolate.</span>
+                <span class="product-name">Caixa Sem chocolate</span>
+                <span class="product-desc">Caixa Explosiva sem itens de chocolate.</span>
               </span>
             </label>
           </div>
           <div id="banner-chocolate-com" class="info-banner info-banner--highlight hidden" role="status">
-            <strong>Com chocolate:</strong> seu pedido inclui <em>chocolate</em> na Caixa Explosiva.
+            <strong>Caixa Com chocolate:</strong> seu pedido inclui <em>chocolate</em> na Caixa Explosiva.
           </div>
           <div id="banner-chocolate-sem" class="info-banner info-banner--soft hidden" role="status">
-            <strong>Sem chocolate:</strong> pedido da Caixa Explosiva sem itens de chocolate.
+            <strong>Caixa Sem chocolate:</strong> pedido da Caixa Explosiva sem itens de chocolate.
           </div>
         </section>
 
@@ -88,21 +88,37 @@
             WebP. Evite prints muito comprimidos.
           </p>
           <div class="photo-grid photo-grid--4">
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 1</span>
               <input type="file" name="foto1" id="foto1" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto1-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 1" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 2</span>
               <input type="file" name="foto2" id="foto2" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto2-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 2" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 3</span>
               <input type="file" name="foto3" id="foto3" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto3-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 3" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 4</span>
               <input type="file" name="foto4" id="foto4" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto4-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 4" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
           </div>
         </section>

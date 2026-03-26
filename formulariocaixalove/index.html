@@ -136,17 +136,29 @@
           <h2 id="step-fotos" class="card-title">Fotos (3 em alta qualidade)</h2>
           <p class="hint">Envie arquivos em HD ou originais da câmera (JPEG, PNG ou WebP). Evite prints muito comprimidos.</p>
           <div class="photo-grid">
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 1</span>
               <input type="file" name="foto1" id="foto1" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto1-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 1" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 2</span>
               <input type="file" name="foto2" id="foto2" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto2-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 2" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
-            <label class="field">
+            <label class="field field-foto-slot">
               <span class="field-label">Foto 3</span>
               <input type="file" name="foto3" id="foto3" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto3-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 3" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
             </label>
           </div>
         </section>

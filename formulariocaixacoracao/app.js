@@ -1,3 +1,8 @@
+import {
+  limparTodasPreviewsFotos,
+  wireFotoPreviewListeners,
+} from "../js/foto-preview.js";
+
 /** WhatsApp da loja (E.164, sem +): +55 21 99672-8473 */
 const WHATSAPP_LOJA_E164 = "5521996728473";
 const WA_TEXTO_MAX = 3500;
@@ -35,63 +40,6 @@ const cpfInput = document.getElementById("cpf");
 let resumoAberto = false;
 let ultimoTextoWhatsapp = "";
 let ultimoFotosShare = null;
-/** URLs de objeto para pré-visualização — revogar ao trocar arquivo ou resetar. */
-const previewObjectUrls = {};
-
-function limparPreviewFotoPorId(inputId) {
-  if (previewObjectUrls[inputId]) {
-    URL.revokeObjectURL(previewObjectUrls[inputId]);
-    delete previewObjectUrls[inputId];
-  }
-  const wrap = document.getElementById(`${inputId}-preview`);
-  if (!wrap) return;
-  wrap.classList.add("hidden");
-  const img = wrap.querySelector(".foto-preview-img");
-  const fb = wrap.querySelector(".foto-preview-fallback");
-  if (img) {
-    img.onload = null;
-    img.onerror = null;
-    img.removeAttribute("src");
-  }
-  fb?.classList.add("hidden");
-}
-
-function limparTodasPreviewsFotos() {
-  for (let i = 1; i <= NUM_FOTOS; i++) {
-    limparPreviewFotoPorId(`foto${i}`);
-  }
-}
-
-function atualizarPreviewFoto(inputEl) {
-  const inputId = inputEl.id;
-  limparPreviewFotoPorId(inputId);
-  const wrap = document.getElementById(`${inputId}-preview`);
-  const file = inputEl.files?.[0];
-  if (!file || !wrap) return;
-  const img = wrap.querySelector(".foto-preview-img");
-  const fb = wrap.querySelector(".foto-preview-fallback");
-  if (!img) return;
-  if (!file.type.startsWith("image/")) {
-    wrap.classList.add("hidden");
-    return;
-  }
-  const url = URL.createObjectURL(file);
-  previewObjectUrls[inputId] = url;
-  img.onload = () => {
-    img.onload = null;
-    img.onerror = null;
-    fb?.classList.add("hidden");
-    wrap.classList.remove("hidden");
-  };
-  img.onerror = () => {
-    img.onload = null;
-    img.onerror = null;
-    img.removeAttribute("src");
-    fb?.classList.remove("hidden");
-    wrap.classList.remove("hidden");
-  };
-  img.src = url;
-}
 
 function showToast(message, isError) {
   toast.textContent = message;
@@ -457,7 +405,7 @@ function finalizarPedidoAposEnvio() {
   resumoAberto = false;
   panelResumo.classList.add("hidden");
   form.reset();
-  limparTodasPreviewsFotos();
+  limparTodasPreviewsFotos(NUM_FOTOS);
   ultimoCepPreenchidoViaApi = "";
   atualizarVisibilidadeProduto();
   ultimoTextoWhatsapp = "";
@@ -619,9 +567,6 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-for (let i = 1; i <= NUM_FOTOS; i++) {
-  const el = document.getElementById(`foto${i}`);
-  if (el) el.addEventListener("change", (e) => atualizarPreviewFoto(e.target));
-}
+wireFotoPreviewListeners(NUM_FOTOS);
 
 atualizarVisibilidadeProduto();

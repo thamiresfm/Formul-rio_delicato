@@ -547,3 +547,31 @@ textarea.field-error {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.field-foto-slot .foto-preview {
+  margin-top: 0.65rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.field-foto-slot .foto-preview-img {
+  display: block;
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+}
+
+.field-foto-slot .foto-preview-fallback {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  line-height: 1.35;
+}
+
+input[type="file"].field-error {
+  border-color: #b33;
+}

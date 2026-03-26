@@ -1,5 +1,11 @@
+import {
+  limparTodasPreviewsFotos,
+  wireFotoPreviewListeners,
+} from "../js/foto-preview.js";
+
 /** WhatsApp da loja (E.164, sem +): +55 21 99672-8473 — sempre usado em api.whatsapp.com/send */
 const WHATSAPP_LOJA_E164 = "5521996728473";
+const NUM_FOTOS_PREVIEW = 3;
 const WA_TEXTO_MAX = 3500;
 
 const form = document.getElementById("pedido-form");
@@ -407,6 +413,7 @@ const form = document.getElementById("pedido-form");
     resumoAberto = false;
     panelResumo.classList.add("hidden");
     form.reset();
+    limparTodasPreviewsFotos(NUM_FOTOS_PREVIEW);
     ultimoCepPreenchidoViaApi = "";
     atualizarExtraTampa();
     atualizarVisibilidadeProduto();
@@ -575,3 +582,5 @@ const form = document.getElementById("pedido-form");
       btnEnviar.disabled = false;
     }
   });
+
+  wireFotoPreviewListeners(NUM_FOTOS_PREVIEW);
