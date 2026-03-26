@@ -283,8 +283,9 @@ const form = document.getElementById("pedido-form");
   }
 
   /**
-   * Celular: api.whatsapp.com abre o app. Desktop: web.whatsapp.com abre o WhatsApp Web no navegador
-   * (api.whatsapp.com no PC costuma falhar ou ser bloqueado).
+   * Celular/tablet: api.whatsapp.com + compartilhamento com fotos quando disponível.
+   * Desktop (Windows, macOS, Linux): web.whatsapp.com — sem menu nativo de compartilhar (no macOS o share
+   * com arquivos não lista WhatsApp; por isso não usamos navigator.share com fotos no desktop).
    */
   function isMobileDispositivo() {
     if (
@@ -295,9 +296,11 @@ const form = document.getElementById("pedido-form");
       return navigator.userAgentData.mobile;
     }
     const ua = navigator.userAgent || "";
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
-    if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return true;
-    return !!(window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+    if (/iPhone|iPod|iPad/i.test(ua)) return true;
+    if (/Android/i.test(ua)) return true;
+    if (/webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
+    if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return true;
+    return false;
   }
 
   function abrirUrlWhatsappComTexto(texto) {
@@ -347,8 +350,8 @@ const form = document.getElementById("pedido-form");
   }
 
   /**
-   * 1) Preferir compartilhamento nativo: texto + 3 fotos — o cliente escolhe WhatsApp e o contato.
-   * 2) Fallback: link direto para o número (só texto; fotos anexar na conversa).
+   * 1) Só em celular/tablet: compartilhamento nativo com texto + 3 fotos (WhatsApp aparece no menu).
+   * 2) No desktop: sempre link direto (web.whatsapp.com ou api) — texto pré-preenchido; fotos anexar na conversa.
    */
   async function enviarPedidoWhatsappAgora() {
     const texto = ultimoTextoWhatsapp;
@@ -358,9 +361,10 @@ const form = document.getElementById("pedido-form");
       return "cancelado";
     }
 
+    const mobile = isMobileDispositivo();
     const temTresFotos = files && files.length === 3 && files.every(Boolean);
     const temShare = typeof navigator !== "undefined" && navigator.share;
-    let podeCompartilharComFotos = temTresFotos && temShare;
+    let podeCompartilharComFotos = mobile && temTresFotos && temShare;
     if (podeCompartilharComFotos && navigator.canShare) {
       podeCompartilharComFotos = navigator.canShare({ files });
     }
@@ -486,8 +490,12 @@ const form = document.getElementById("pedido-form");
         showToast(
           "No próximo passo, escolha o WhatsApp e o contato da loja (+55 21 99672-8473). O texto e as 3 imagens vão juntos no envio."
         );
-      } else {
+      } else if (isMobileDispositivo()) {
         showToast("WhatsApp aberto com o texto — anexe as 3 fotos se ainda não enviou.");
+      } else {
+        showToast(
+          "Abrimos o WhatsApp Web com o texto do pedido. Anexe as 3 fotos na conversa (arrastar ou botão de clipe)."
+        );
       }
     } catch (err) {
       console.error(err);
