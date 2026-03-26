@@ -241,6 +241,9 @@ app.get("/formulariocaixalove", (_req, res) => {
 app.get("/formulariocaixaexplosiva", (_req, res) => {
   res.redirect(301, "/formulariocaixaexplosiva/");
 });
+app.get("/formulariocaixacoracao", (_req, res) => {
+  res.redirect(301, "/formulariocaixacoracao/");
+});
 app.use(express.static(path.join(__dirname, "public")));
 
 const fieldsUpload = upload.fields([

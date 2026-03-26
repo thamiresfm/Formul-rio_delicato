@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/formulariocaixacoracao/" />
+    <link rel="canonical" href="https://delicattopersonalizados.com.br/formulariocaixacoracao/" />
+    <title>Caixa Surpresa Coração — Delicatto Personalizados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Great+Vibes&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-bg" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <img
+        src="./assets/logo-delicatto.png"
+        alt="Delicatto Personalizados"
+        class="brand-logo"
+        width="280"
+        height="auto"
+      />
+      <p class="tagline">Presentes personalizados com carinho</p>
+    </header>
+
+    <main class="main-content">
+      <form id="pedido-form" novalidate>
+        <section class="card" aria-labelledby="step-produto">
+          <h1 id="step-produto" class="card-title">Caixa Surpresa Coração</h1>
+          <p class="card-lead">
+            Escolha a opção da caixa. Os campos de personalização aparecem após a seleção. Use &quot;Ver resumo antes de enviar&quot; e
+            confira tudo antes de enviar ao WhatsApp da loja.
+          </p>
+
+          <p class="card-lead card-lead--tight">Opção da caixa</p>
+          <div class="product-grid" role="radiogroup" aria-label="Opção da Caixa Surpresa Coração">
+            <label class="product-option">
+              <input type="radio" name="opcaoCaixa" id="opcao-caixa-completa" value="caixa-completa" required />
+              <span class="product-option-inner">
+                <span class="product-name">Caixa completa</span>
+                <span class="product-desc">Inclui chocolate, palha e LED.</span>
+              </span>
+            </label>
+            <label class="product-option">
+              <input type="radio" name="opcaoCaixa" id="opcao-led-palha" value="so-led-palha" />
+              <span class="product-option-inner">
+                <span class="product-name">Caixa com led e palha</span>
+                <span class="product-desc">LED e palha incluídos; sem chocolate.</span>
+              </span>
+            </label>
+            <label class="product-option">
+              <input type="radio" name="opcaoCaixa" id="opcao-so-chocolate" value="so-chocolate" />
+              <span class="product-option-inner">
+                <span class="product-name">Caixa com chocolate</span>
+                <span class="product-desc">Inclui chocolate.</span>
+              </span>
+            </label>
+          </div>
+
+          <div id="banner-completa" class="info-banner info-banner--highlight hidden" role="status">
+            <strong>Caixa completa:</strong> inclui chocolate, palha e LED conforme o pacote da Caixa Surpresa Coração.
+          </div>
+          <div id="banner-led-palha" class="info-banner info-banner--soft hidden" role="status">
+            <strong>Caixa com led e palha:</strong> seu pedido inclui <em>LED</em> e <em>palha</em>, sem chocolate.
+          </div>
+          <div id="banner-chocolate" class="info-banner hidden" role="status">
+            <strong>Caixa com chocolate:</strong> pedido com foco em chocolate, sem led e palha.
+          </div>
+        </section>
+
+        <section id="sec-personalizacao" class="card hidden" aria-labelledby="step-perso">
+          <h2 id="step-perso" class="card-title">Personalização</h2>
+
+          <p class="status-pago" role="status">
+            Status do pedido: <strong>Pagamento confirmado</strong> ✅
+          </p>
+
+          <label class="field">
+            <span class="field-label">Frase pequena para lateral da caixa <span class="hint-inline">(máx. 35 caracteres)</span></span>
+            <input
+              type="text"
+              name="fraseLateral"
+              id="fraseLateral"
+              autocomplete="off"
+              maxlength="35"
+              required
+              placeholder="Texto para a lateral"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Frase para coração da caixa <span class="hint-inline">(máx. 20 caracteres)</span></span>
+            <input
+              type="text"
+              name="fraseCoracao"
+              id="fraseCoracao"
+              autocomplete="off"
+              maxlength="20"
+              required
+              placeholder="Sua mensagem no coração"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Data que deseja colocar</span>
+            <input type="date" name="dataDestaque" id="dataDestaque" required />
+          </label>
+        </section>
+
+        <section id="sec-fotos" class="card hidden" aria-labelledby="step-fotos">
+          <h2 id="step-fotos" class="card-title">Fotos</h2>
+          <p class="hint hint-fotos-destaque">
+            <strong>6 fotos</strong><br />
+            <strong>1 sendo principal</strong><br />
+            Para que a qualidade fique melhor, pedimos que as fotos sejam enviadas em HD ou em arquivo.
+          </p>
+          <div class="photo-grid photo-grid--6">
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 1</span>
+              <input type="file" name="foto1" id="foto1" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto1-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 1" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 2</span>
+              <input type="file" name="foto2" id="foto2" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto2-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 2" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 3</span>
+              <input type="file" name="foto3" id="foto3" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto3-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 3" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 4</span>
+              <input type="file" name="foto4" id="foto4" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto4-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 4" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 5</span>
+              <input type="file" name="foto5" id="foto5" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto5-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 5" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+            <label class="field field-foto-slot">
+              <span class="field-label">Foto 6</span>
+              <input type="file" name="foto6" id="foto6" accept="image/jpeg,image/png,image/webp,image/heic" required />
+              <div class="foto-preview hidden" id="foto6-preview" aria-live="polite">
+                <img class="foto-preview-img" alt="Prévia da foto 6" />
+                <p class="foto-preview-fallback hidden">Prévia indisponível para este formato (ex.: HEIC em alguns navegadores).</p>
+              </div>
+            </label>
+          </div>
+
+          <fieldset class="field field-principal" id="fieldset-principal">
+            <legend class="field-label">Foto principal</legend>
+            <p class="hint">Indique qual das 6 fotos é a principal.</p>
+            <div class="principal-radios" role="radiogroup" aria-label="Número da foto principal">
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="1" required /> Foto 1</label>
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="2" /> Foto 2</label>
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="3" /> Foto 3</label>
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="4" /> Foto 4</label>
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="5" /> Foto 5</label>
+              <label class="principal-radio"><input type="radio" name="fotoPrincipal" value="6" /> Foto 6</label>
+            </div>
+          </fieldset>
+        </section>
+
+        <section id="sec-endereco" class="card hidden" aria-labelledby="step-endereco">
+          <h2 id="step-endereco" class="card-title">Endereço de entrega</h2>
+          <label class="field field-cep-primeiro">
+            <span class="field-label">CEP</span>
+            <input type="text" name="cep" id="cep" inputmode="numeric" placeholder="00000-000" maxlength="9" required autocomplete="postal-code" />
+          </label>
+          <p class="hint cep-hint">Ao completar o CEP, buscamos rua, bairro, cidade e UF automaticamente.</p>
+          <div class="address-grid">
+            <label class="field field-span-2">
+              <span class="field-label">Rua</span>
+              <input type="text" name="rua" id="rua" autocomplete="street-address" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Número</span>
+              <input type="text" name="numero" id="numero" inputmode="numeric" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Bairro</span>
+              <input type="text" name="bairro" id="bairro" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Cidade</span>
+              <input type="text" name="cidade" id="cidade" autocomplete="address-level2" required />
+            </label>
+            <label class="field">
+              <span class="field-label">UF</span>
+              <input type="text" name="uf" id="uf" inputmode="text" maxlength="2" placeholder="RJ" required aria-label="UF, duas letras" />
+            </label>
+            <label class="field field-span-2">
+              <span class="field-label">Ponto de referência <span class="optional">(se houver)</span></span>
+              <input type="text" name="referencia" id="referencia" maxlength="200" />
+            </label>
+          </div>
+        </section>
+
+        <section id="sec-cliente" class="card hidden" aria-labelledby="step-cliente">
+          <h2 id="step-cliente" class="card-title">Dados do cliente</h2>
+          <label class="field">
+            <span class="field-label">Nome completo</span>
+            <input type="text" name="nomeCompleto" id="nomeCompleto" autocomplete="name" required />
+          </label>
+          <label class="field">
+            <span class="field-label">CPF <span class="hint-inline">(para emissão de etiqueta)</span></span>
+            <input type="text" name="cpf" id="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required />
+          </label>
+        </section>
+
+        <div id="actions-primary" class="actions hidden">
+          <button type="button" class="btn btn-secondary" id="btn-resumo">Ver resumo antes de enviar</button>
+        </div>
+      </form>
+
+      <div id="panel-resumo" class="card panel-resumo hidden" aria-live="polite">
+        <h2 class="card-title">Resumo do pedido</h2>
+        <dl class="resumo-list" id="resumo-conteudo"></dl>
+        <p class="hint resumo-wa-hint">
+          <strong>No celular ou tablet:</strong> ao enviar, pode abrir o compartilhamento com o texto e as <strong>6 imagens</strong>;
+          escolha o <strong>WhatsApp</strong> e o contato da loja (+55 21 99672-8473).
+          <strong>No computador:</strong> abrimos o <strong>WhatsApp Web</strong> já com o texto do pedido — anexe as 6 fotos na conversa.
+        </p>
+        <div class="actions actions-resumo">
+          <button type="button" class="btn btn-ghost" id="btn-voltar">Voltar e editar</button>
+          <button type="submit" class="btn btn-primary" form="pedido-form" id="btn-enviar">Enviar pedido</button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden" role="status"></div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© Delicatto Personalizados — pedido via formulário oficial</p>
+      <p class="footer-links">
+        <a href="https://wa.me/5521996728473" target="_blank" rel="noopener noreferrer">WhatsApp +55 21 99672-8473</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
