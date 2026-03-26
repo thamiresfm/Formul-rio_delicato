@@ -194,21 +194,14 @@
       <div id="toast" class="toast hidden" role="status"></div>
 
       <div id="wa-pos-pedido" class="card wa-card hidden" role="region" aria-labelledby="wa-pos-titulo">
-        <h2 id="wa-pos-titulo" class="wa-card-title">Pedido enviado — WhatsApp</h2>
+        <h2 id="wa-pos-titulo" class="wa-card-title">Enviar pedido</h2>
         <p class="hint wa-card-hint">
-          Toque em um dos botões para enviar ao <strong>+55 21 99672-8473</strong>. No <strong>celular</strong>, ao usar
-          &quot;só texto&quot;, o WhatsApp abre na mesma janela — use o botão <strong>Voltar</strong> do navegador para
-          retornar e baixar o Word se precisar. O botão com <strong>fotos</strong> usa o compartilhamento do sistema. No PC
-          o link costuma abrir em nova aba.
+          Toque no botão abaixo para abrir o WhatsApp e enviar o texto do pedido para
+          <strong>+55 21 99672-8473</strong>. No celular, o WhatsApp pode abrir na mesma janela — use
+          <strong>Voltar</strong> no navegador para retornar ao site. Você pode anexar as fotos na conversa depois.
         </p>
         <div class="wa-actions">
-          <button type="button" class="btn btn-primary wa-card-btn hidden" id="btn-wa-fotos">
-            WhatsApp: texto + 3 fotos
-          </button>
-          <button type="button" class="btn btn-secondary wa-card-btn" id="btn-wa-texto">WhatsApp: só texto</button>
-          <button type="button" class="btn btn-secondary wa-card-btn" id="btn-baixar-docx">
-            Gerar / baixar arquivo Word
-          </button>
+          <button type="button" class="btn btn-primary wa-card-btn" id="btn-enviar-whatsapp">Enviar pedido</button>
         </div>
       </div>
     </main>
@@ -220,7 +213,7 @@
       </p>
     </footer>
 
-    <!-- O Word é gerado no próprio navegador (sem servidor). Funciona no GitHub Pages e no celular. -->
+    <!-- Pedido enviado pelo WhatsApp (texto); GitHub Pages só estático. -->
     <script type="module" src="./app.js"></script>
   </body>
 </html>

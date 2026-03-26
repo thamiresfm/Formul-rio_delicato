@@ -1,5 +1,3 @@
-import { gerarDocxPedido } from "./gerar-docx.js";
-
 /** Número só dígitos (E.164 BR sem +): atendimento Delicatto */
 const WHATSAPP_LOJA_E164 = "5521996728473";
 const WA_TEXTO_MAX = 3500;
@@ -26,15 +24,10 @@ const form = document.getElementById("pedido-form");
   const wrapEuTeAmo = document.getElementById("wrap-eu-te-amo");
   const wrapTextoCurto = document.getElementById("wrap-texto-curto");
   const waPosPedido = document.getElementById("wa-pos-pedido");
-  const btnBaixarDocx = document.getElementById("btn-baixar-docx");
-  const btnWaFotos = document.getElementById("btn-wa-fotos");
-  const btnWaTexto = document.getElementById("btn-wa-texto");
+  const btnEnviarWhatsapp = document.getElementById("btn-enviar-whatsapp");
 
   let resumoAberto = false;
-  let ultimoDocxBlob = null;
-  let ultimoDocxNome = "Pedido-Delicatto.docx";
   let ultimoTextoWhatsapp = "";
-  let ultimoFotosShare = null;
 
   function formatDateBR(iso) {
     if (!iso) return "";
@@ -292,7 +285,7 @@ const form = document.getElementById("pedido-form");
   function abrirUrlWhatsappComTexto(texto) {
     let corpo = texto;
     if (corpo.length > WA_TEXTO_MAX) {
-      corpo = `${corpo.slice(0, WA_TEXTO_MAX)}\n…(texto truncado — veja o documento Word)`;
+      corpo = `${corpo.slice(0, WA_TEXTO_MAX)}\n…(texto truncado)`;
     }
     const encoded = encodeURIComponent(corpo);
     let url = `https://api.whatsapp.com/send?phone=${WHATSAPP_LOJA_E164}&text=${encoded}`;
@@ -310,8 +303,8 @@ const form = document.getElementById("pedido-form");
   }
 
   /**
-   * No celular, nova aba/pop-up costuma ser bloqueado — abre na mesma janela (volte com "Voltar" no navegador).
-   * No desktop, tenta abrir em nova aba para não perder o download do Word.
+   * No celular, nova aba/pop-up costuma ser bloqueado — abre na mesma janela (use "Voltar" no navegador).
+   * No desktop, tenta abrir em nova aba.
    */
   function abrirWhatsappUrl(url) {
     if (isProvavelMobile()) {
@@ -329,62 +322,13 @@ const form = document.getElementById("pedido-form");
     document.body.removeChild(a);
   }
 
-  function atualizarBotaoWhatsappFotos() {
-    if (!btnWaFotos) return;
-    const files = ultimoFotosShare;
-    const pode =
-      files &&
-      files.length === 3 &&
-      files.every(Boolean) &&
-      typeof navigator !== "undefined" &&
-      navigator.canShare &&
-      navigator.canShare({ files });
-    btnWaFotos.classList.toggle("hidden", !pode);
-  }
-
-  if (btnWaFotos) {
-    btnWaFotos.addEventListener("click", async () => {
-      if (!ultimoTextoWhatsapp || !ultimoFotosShare || ultimoFotosShare.length !== 3) {
-        showToast("Dados do pedido indisponíveis. Envie o formulário novamente.", true);
-        return;
-      }
-      try {
-        await navigator.share({
-          title: "Pedido Delicatto Personalizados",
-          text: ultimoTextoWhatsapp,
-          files: ultimoFotosShare,
-        });
-        showToast("Escolha o WhatsApp e o número da loja para concluir o envio.");
-      } catch (err) {
-        if (err && err.name === "AbortError") return;
-        showToast('Não foi possível compartilhar. Use "WhatsApp: só texto" e anexe as fotos manualmente.', true);
-      }
-    });
-  }
-
-  if (btnWaTexto) {
-    btnWaTexto.addEventListener("click", () => {
+  if (btnEnviarWhatsapp) {
+    btnEnviarWhatsapp.addEventListener("click", () => {
       if (!ultimoTextoWhatsapp) {
         showToast("Dados do pedido indisponíveis. Envie o formulário novamente.", true);
         return;
       }
       abrirWhatsappUrl(abrirUrlWhatsappComTexto(ultimoTextoWhatsapp));
-    });
-  }
-
-  if (btnBaixarDocx) {
-    btnBaixarDocx.addEventListener("click", () => {
-      if (!ultimoDocxBlob) {
-        showToast("Nenhum documento disponível. Envie o pedido novamente.", true);
-        return;
-      }
-      const url = URL.createObjectURL(ultimoDocxBlob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = ultimoDocxNome;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast("Download do Word iniciado.");
     });
   }
 
@@ -431,8 +375,6 @@ const form = document.getElementById("pedido-form");
       return;
     }
     ultimoTextoWhatsapp = "";
-    ultimoFotosShare = null;
-    if (btnWaFotos) btnWaFotos.classList.add("hidden");
     if (waPosPedido) waPosPedido.classList.add("hidden");
     montarResumo();
     resumoAberto = true;
@@ -446,7 +388,7 @@ const form = document.getElementById("pedido-form");
     form.scrollIntoView({ behavior: "smooth" });
   });
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
     const erros = validar();
     if (erros.length) {
@@ -461,10 +403,6 @@ const form = document.getElementById("pedido-form");
       return;
     }
 
-    const f1 = document.getElementById("foto1").files[0];
-    const f2 = document.getElementById("foto2").files[0];
-    const f3 = document.getElementById("foto3").files[0];
-
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       showToast("Sem conexão com a internet. Tente novamente.", true);
       return;
@@ -473,39 +411,9 @@ const form = document.getElementById("pedido-form");
     btnEnviar.disabled = true;
     try {
       const textoWhatsapp = montarTextoWhatsappPedido();
-      const cepDigits = onlyDigits(document.getElementById("cep").value);
-      const cpfDigits = onlyDigits(document.getElementById("cpf").value);
-      const tipoLabel =
-        getTipoSelecionado() === "completa"
-          ? "Caixa Love COMPLETA (com chocolate, palha e LED)"
-          : "Caixa Love SEM chocolate";
-
-      const bodyPedido = {
-        pagamentoConfirmado: "true",
-        fraseTampa: document.getElementById("fraseTampa").value.trim(),
-        fraseDentro: document.getElementById("fraseDentro").value.trim(),
-        tipoExtraTampa: tipoExtraTampa ? tipoExtraTampa.value : "nenhum",
-        dataEspecial: document.getElementById("dataEspecial").value || "",
-        textoCurtoTampa: document.getElementById("textoCurtoTampa").value.trim(),
-        rua: document.getElementById("rua").value.trim(),
-        numero: document.getElementById("numero").value.trim(),
-        bairro: document.getElementById("bairro").value.trim(),
-        cep: cepDigits.replace(/(\d{5})(\d{3})/, "$1-$2"),
-        referencia: document.getElementById("referencia").value.trim(),
-        nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
-        cpf: cpfDigits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"),
-      };
-
-      const { blob, filename } = await gerarDocxPedido(bodyPedido, tipoLabel, [f1, f2, f3]);
-
-      ultimoDocxBlob = blob;
-      ultimoDocxNome = filename;
-
       ultimoTextoWhatsapp = textoWhatsapp;
-      ultimoFotosShare = [f1, f2, f3];
-      atualizarBotaoWhatsappFotos();
 
-      showToast("Pedido salvo! Use os botões abaixo para enviar ao WhatsApp.");
+      showToast("Pedido pronto! Toque em Enviar pedido para abrir o WhatsApp.");
       if (waPosPedido) {
         waPosPedido.classList.remove("hidden");
         waPosPedido.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -517,12 +425,12 @@ const form = document.getElementById("pedido-form");
       atualizarVisibilidadeProduto();
     } catch (err) {
       console.error(err);
-      const detalhe = err && err.message ? err.message : "falha ao gerar o Word";
+      const detalhe = err && err.message ? err.message : "falha ao processar o pedido";
       const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
       const dicaInApp = /Instagram|FBAN|FBAV|Line\/|MicroMessenger|WebView/i.test(ua)
         ? " Se estiver dentro do Instagram/WhatsApp, abra o link no Safari ou Chrome."
         : "";
-      showToast(`Não foi possível gerar o documento: ${detalhe}.${dicaInApp}`, true);
+      showToast(`Não foi possível concluir: ${detalhe}.${dicaInApp}`, true);
     } finally {
       btnEnviar.disabled = false;
     }
