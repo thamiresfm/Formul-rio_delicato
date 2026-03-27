@@ -2,11 +2,11 @@
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-7890-abcd-delicatto-rastreio",
     "name": "Delicatto — Rastreio + Admin",
-    "description": "## Uso atual (coleção)\n\nSó o request **Melhor Envio → Pesquisar pedidos (orders/search)** está ativo. Os demais itens estão **desativados** (`disabled`); reative no Postman se precisar.\n\nAutenticação ME: **JWT do painel** em `{{me_panel_access_token}}` (variável `ME_PANEL_ACCESS_TOKEN` no `.env`). Não commite o token.\n\nEndpoint: `GET {{me_base}}/api/v2/me/orders/search?q={{codigoRastreio}}` — o parâmetro é **`?q=`**, não `/search/q=`.\n\nImporte `Delicatto-local.postman_environment.json` e preencha `me_panel_access_token` + `me_base` + `codigoRastreio`.",
+    "description": "## Backend Delicatto — consulta pública de rastreio\n\n**POST** `{{baseUrl}}/api/rastreio/consultar` — corpo JSON `{ \"codigo\": \"...\" }` (sem token no cliente).\n\n### curl — local (`npm start`)\n```bash\ncurl -sS -X POST \"http://localhost:3000/api/rastreio/consultar\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Accept: application/json\" \\\\\n  -d '{\"codigo\":\"888030625436252\"}'\n```\n```bash\ncurl -sS \"http://localhost:3000/api/rastreio/health\"\n```\n\n### curl — produção (Render)\n```bash\ncurl -sS -X POST \"https://formulariodelicatto.onrender.com/api/rastreio/consultar\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Accept: application/json\" \\\\\n  -d '{\"codigo\":\"888030625436252\"}'\n```\nNo Postman: **Import → Raw text** e cole um dos comandos acima (ajuste o código).\n\n---\n\n## Melhor Envio (API externa)\n\nAutenticação ME: **JWT do painel** em `{{me_panel_access_token}}`.\n\n`GET {{me_base}}/api/v2/me/orders/search?q={{codigoRastreio}}` — parâmetro **`?q=`**.\n\nImporte `Delicatto-local.postman_environment.json` e preencha `baseUrl`, `me_panel_access_token`, `me_base`, `codigoRastreio`.\n\n**Admin** e outros pedidos extra continuam desativados; reative no Postman se precisar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "baseUrl", "value": "http://localhost:3000", "description": "Backend Node (local ou https://formulariodelicatto.onrender.com)" },
     { "key": "adminToken", "value": "" },
     { "key": "codigoRastreio", "value": "888030625436252" },
     { "key": "envioId", "value": "" },
@@ -15,12 +15,12 @@
   ],
   "item": [
     {
-      "name": "API pública (desativado)",
-      "description": "Reative os itens no Postman se for usar o backend local.",
+      "name": "Backend — API pública",
+      "description": "Usa `baseUrl` (localhost ou URL do Render). Equivalente curl na descrição da coleção.",
       "item": [
         {
           "name": "Health rastreio",
-          "disabled": true,
+          "description": "```bash\ncurl -sS \"{{baseUrl}}/api/rastreio/health\"\n```",
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
@@ -29,7 +29,7 @@
         },
         {
           "name": "Consultar envio (público)",
-          "disabled": true,
+          "description": "```bash\ncurl -sS -X POST \"{{baseUrl}}/api/rastreio/consultar\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Accept: application/json\" \\\\\n  -d '{\"codigo\":\"{{codigoRastreio}}\"}'\n```",
           "request": {
             "method": "POST",
             "header": [
