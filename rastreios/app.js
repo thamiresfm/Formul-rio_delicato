@@ -1,7 +1,19 @@
-/** Base da API: mesma origem se vazio; ou meta name="delicatto-api-base" (ex.: site estático + API em outro host) */
+/**
+ * Base da API: meta delicatto-api-base; se vazio, mesma origem.
+ * Fallback: domínio delicattopersonalizados.com.br (GitHub Pages) → API no Render (evita POST 405 na origem estática).
+ * Se a API passar a rodar no mesmo domínio, defina a meta com a URL completa (ex.: https://delicattopersonalizados.com.br).
+ */
+const API_BASE_RENDER = "https://formulariodelicatto.onrender.com";
+
 function urlApiConsultar() {
   const meta = document.querySelector('meta[name="delicatto-api-base"]');
-  const base = (meta?.getAttribute("content") || "").trim().replace(/\/$/, "");
+  let base = (meta?.getAttribute("content") || "").trim().replace(/\/$/, "");
+  const host = window.location.hostname;
+  if (!base) {
+    if (host === "delicattopersonalizados.com.br" || host === "www.delicattopersonalizados.com.br") {
+      base = API_BASE_RENDER;
+    }
+  }
   return `${base}/api/rastreio/consultar`;
 }
 
