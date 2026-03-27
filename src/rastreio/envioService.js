@@ -14,6 +14,13 @@ const {
 
 const MAX_CODIGO = 80;
 
+/** Lê env com trim e sem BOM (evita “vazio” invisível no Render / copy-paste). */
+function envStr(key) {
+  return String(process.env[key] ?? "")
+    .replace(/^\uFEFF/, "")
+    .trim();
+}
+
 /**
  * Sanitiza o código digitado pelo cliente (somente caracteres seguros para rastreio).
  */
@@ -38,16 +45,28 @@ async function buscarEnvioPorCodigoPublicoCompat(codigoLimpo) {
 }
 
 async function credenciaisMelhorEnvioConfiguradas() {
-  const panel = String(process.env.ME_PANEL_ACCESS_TOKEN || "").trim();
-  if (panel) return true;
-  if (!process.env.ME_CLIENT_ID || !process.env.ME_CLIENT_SECRET) return false;
-  if (String(process.env.ME_REFRESH_TOKEN || "").trim()) return true;
+  const panel = envStr("ME_PANEL_ACCESS_TOKEN");
+  if (panel.length > 0) return true;
+  const clientId = envStr("ME_CLIENT_ID");
+  const clientSecret = envStr("ME_CLIENT_SECRET");
+  if (!clientId || !clientSecret) return false;
+  if (envStr("ME_REFRESH_TOKEN").length > 0) return true;
   if (rastreioSemBanco() || !prisma) return false;
   const row = await prisma.integrationToken.findUnique({
     where: { id: "melhor_envio" },
     select: { refreshToken: true },
   });
   return Boolean(row?.refreshToken && String(row.refreshToken).trim());
+}
+
+/** Só para diagnóstico (GET /health): indica se cada chave ME_* tem valor não vazio, sem revelar segredos. */
+function flagsEnvMelhorEnvioPublico() {
+  return {
+    temME_PANEL_ACCESS_TOKEN: envStr("ME_PANEL_ACCESS_TOKEN").length > 0,
+    temME_CLIENT_ID: envStr("ME_CLIENT_ID").length > 0,
+    temME_CLIENT_SECRET: envStr("ME_CLIENT_SECRET").length > 0,
+    temME_REFRESH_TOKEN: envStr("ME_REFRESH_TOKEN").length > 0,
+  };
 }
 
 /** Escolhe o pedido cuja trilha de rastreio bate com o código digitado; senão o primeiro resultado. */
@@ -295,4 +314,6 @@ module.exports = {
   consultarPublicoDiretoMelhorEnvio,
   aplicarPayloadWebhook,
   listarEnviosParaPolling,
+  credenciaisMelhorEnvioConfiguradas,
+  flagsEnvMelhorEnvioPublico,
 };

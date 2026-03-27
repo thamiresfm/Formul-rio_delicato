@@ -12,6 +12,8 @@ const {
   consultarPublicoDiretoMelhorEnvio,
   aplicarPayloadWebhook,
   listarEnviosParaPolling,
+  credenciaisMelhorEnvioConfiguradas,
+  flagsEnvMelhorEnvioPublico,
 } = require("./envioService");
 
 async function handleWebhookMelhorEnvio(req, res) {
@@ -100,8 +102,24 @@ function registrarWebhookMelhorEnvio(app) {
 function registrarRotasRastreio(app) {
   const api = express.Router();
 
-  api.get("/health", (_req, res) => {
-    res.json({ ok: true, servico: "rastreio", ts: new Date().toISOString() });
+  api.get("/health", async (_req, res) => {
+    try {
+      const credenciaisOk = await credenciaisMelhorEnvioConfiguradas();
+      res.json({
+        ok: true,
+        servico: "rastreio",
+        ts: new Date().toISOString(),
+        melhorEnvio: {
+          credenciaisOk,
+          semBanco: rastreioSemBanco(),
+          env: flagsEnvMelhorEnvioPublico(),
+          RASTREIO_CONSULTA_ME_SEM_CADASTRO: process.env.RASTREIO_CONSULTA_ME_SEM_CADASTRO ?? null,
+        },
+      });
+    } catch (err) {
+      console.error("[rastreio] health:", err);
+      res.status(500).json({ ok: false, erro: err.message });
+    }
   });
 
   /** Consulta pública — erros de negócio com HTTP 200 + ok:false (evita “404” no DevTools). */

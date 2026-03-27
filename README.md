@@ -44,7 +44,7 @@ O código já lê `ME_CLIENT_ID`, `ME_CLIENT_SECRET` e `ME_OAUTH_REDIRECT_URI` e
 - **Start:** `npm start` ou `node server.js`.
 - **Variáveis:** `ME_CLIENT_ID`, `ME_CLIENT_SECRET`, `ME_OAUTH_REDIRECT_URI`, `ME_API_BASE`, etc. têm de estar no **painel Environment do Render** — secrets do GitHub **não** são aplicados sozinhos.
 - **Plano free:** o serviço “dorme”; o primeiro acesso pode levar **~1 minuto** a responder.
-- **Teste rápido:** abrir `GET …/api/rastreio/health` (deve devolver JSON com `ok: true`).
+- **Teste rápido:** abrir `GET …/api/rastreio/health` — devolve `melhorEnvio.credenciaisOk` e `melhorEnvio.env` (flags `temME_*` **sem** expor segredos). Se `temME_PANEL_ACCESS_TOKEN` for `false` no JSON mas no painel do Render parece preenchido, o processo não está a receber a variável (redeploy, nome da chave, ou valor só com espaços).
 
 ## Problemas comuns
 
