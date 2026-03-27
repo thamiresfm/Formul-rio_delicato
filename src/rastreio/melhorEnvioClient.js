@@ -392,6 +392,11 @@ async function buscarEnvioPorId(shipmentId) {
     });
     const bodyText = await res.text();
     if (res.ok) {
+      const trimmed = normalizarTextoRespostaMe(bodyText);
+      if (!trimmed) {
+        ultimoErro = `${res.status} corpo vazio`;
+        continue;
+      }
       return jsonOuErroMe(bodyText, `orders/${id}`);
     }
     if (corpoEhPaginaHtml(bodyText)) {
@@ -429,6 +434,11 @@ async function pesquisarPedidosPorTermo(q) {
   }
   if (!res.ok) {
     throw new Error(`Melhor Envio: pesquisa falhou (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const trimmed = normalizarTextoRespostaMe(text);
+  // GET search: 2xx sem corpo costuma significar “nenhum resultado” (equivale a []).
+  if (!trimmed && res.ok) {
+    return [];
   }
   const parsed = jsonOuErroMe(text, "orders/search");
   return listaOrdersSearch(parsed);
