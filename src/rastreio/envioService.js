@@ -141,6 +141,35 @@ async function consultarPublicoDiretoMelhorEnvio(codigoLimpo) {
 }
 
 /**
+ * Traduz erro interno da API ME para texto seguro ao cliente (sem expor tokens).
+ */
+function mensagemPublicaErroIntegracaoMe(mensagemInterna) {
+  const m = String(mensagemInterna || "");
+  if (m.includes("ME_PANEL_ACCESS_TOKEN expirou")) {
+    return "O JWT do painel Melhor Envio expirou. Gere um novo em Permissões de acesso no painel ME e atualize ME_PANEL_ACCESS_TOKEN no Render.";
+  }
+  if (/\(401\)|\b401\b|Unauthorized/i.test(m)) {
+    return "O Melhor Envio recusou o token (401). Atualize ME_REFRESH_TOKEN ou ME_PANEL_ACCESS_TOKEN no Render e confira ME_CLIENT_ID / ME_CLIENT_SECRET.";
+  }
+  if (/\(403\)|\b403\b|Forbidden/i.test(m)) {
+    return "Acesso negado pela API Melhor Envio (403). Confira escopos do aplicativo e se ME_API_BASE é o mesmo ambiente da conta (produção vs sandbox).";
+  }
+  if (/\(429\)|\b429\b|rate|too many/i.test(m)) {
+    return "Limite de consultas no Melhor Envio. Aguarde um minuto e tente de novo.";
+  }
+  if (/fetch failed|ECONNREFUSED|ENOTFOUND|ETIMEDOUT|network|getaddrinfo/i.test(m)) {
+    return "Sem ligação ao Melhor Envio. Tente de novo em instantes.";
+  }
+  if (/pesquisa falhou/i.test(m)) {
+    return "A pesquisa no Melhor Envio falhou. Verifique ME_API_BASE e se o token ainda é válido.";
+  }
+  if (/OAuth falhou/i.test(m) && /invalid|revoked|expired|invalid_grant|400/i.test(m)) {
+    return "Sessão OAuth do Melhor Envio inválida ou expirada. Refaça o OAuth ou atualize ME_REFRESH_TOKEN no Render.";
+  }
+  return "Não foi possível consultar o Melhor Envio no momento. Tente de novo em instantes ou fale com a loja.";
+}
+
+/**
  * Sincroniza um envio com o Melhor Envio e persiste eventos.
  */
 async function sincronizarEnvioComMelhorEnvio(envioId) {
@@ -316,4 +345,5 @@ module.exports = {
   listarEnviosParaPolling,
   credenciaisMelhorEnvioConfiguradas,
   flagsEnvMelhorEnvioPublico,
+  mensagemPublicaErroIntegracaoMe,
 };

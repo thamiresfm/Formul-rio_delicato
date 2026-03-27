@@ -14,6 +14,7 @@ const {
   listarEnviosParaPolling,
   credenciaisMelhorEnvioConfiguradas,
   flagsEnvMelhorEnvioPublico,
+  mensagemPublicaErroIntegracaoMe,
 } = require("./envioService");
 
 async function handleWebhookMelhorEnvio(req, res) {
@@ -162,8 +163,7 @@ function registrarRotasRastreio(app) {
           return res.status(200).json({
             ok: false,
             codigoErro: "integracao",
-            erro:
-              "Não foi possível consultar o Melhor Envio no momento. Tente de novo em instantes ou fale com a loja.",
+            erro: mensagemPublicaErroIntegracaoMe(me.mensagem),
             detalhe: process.env.NODE_ENV === "development" ? me.mensagem : undefined,
           });
         }
