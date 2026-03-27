@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/rastreios/admin/" />
+    <title>Rastreios — Equipe Delicatto</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .admin-wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem 1.25rem 3rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.45rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: var(--accent-soft);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .btn-sm {
+        font-size: 0.78rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #fff;
+        cursor: pointer;
+        color: var(--ink);
+      }
+      .grid-2 {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 640px) {
+        .grid-2 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      code {
+        font-size: 0.85em;
+        background: var(--accent-soft);
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-bg" aria-hidden="true"></div>
+    <div class="admin-wrap">
+      <p><a href="../">← Voltar ao rastreio público</a></p>
+      <section class="card">
+        <h1 class="card-title">Painel — rastreamento</h1>
+        <p class="card-lead">
+          Acesso restrito. Informe o token configurado em <code>RASTREIO_ADMIN_TOKEN</code> no servidor.
+        </p>
+        <label class="field">
+          <span class="field-label">Token administrativo</span>
+          <input type="password" id="admin-token" autocomplete="off" placeholder="Cole o token secreto" />
+        </label>
+        <button type="button" class="btn btn-primary" id="btn-salvar-token">Salvar neste navegador</button>
+        <p class="hint">O token fica apenas no <code>sessionStorage</code> deste dispositivo.</p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title" style="font-size: 1.35rem">Novo pedido</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span class="field-label">Código do pedido *</span>
+            <input type="text" id="ped-codigo" />
+          </label>
+          <label class="field">
+            <span class="field-label">Título (opcional)</span>
+            <input type="text" id="ped-titulo" />
+          </label>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-criar-pedido">Cadastrar pedido</button>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title" style="font-size: 1.35rem">Novo envio</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span class="field-label">Código de rastreio (cliente) *</span>
+            <input type="text" id="env-codigo" />
+          </label>
+          <label class="field">
+            <span class="field-label">ID envio Melhor Envio (UUID)</span>
+            <input type="text" id="env-me-id" placeholder="Obrigatório para sincronizar" />
+          </label>
+        </div>
+        <label class="field">
+          <span class="field-label">ID do pedido (Prisma)</span>
+          <input type="text" id="env-pedido-id" placeholder="Opcional — cole após criar pedido" />
+        </label>
+        <button type="button" class="btn btn-primary" id="btn-criar-envio">Cadastrar envio</button>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title" style="font-size: 1.35rem">Envios</h2>
+        <div class="field" style="flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem">
+          <label class="field" style="flex: 1; min-width: 140px; margin: 0">
+            <span class="field-label">Busca</span>
+            <input type="text" id="filtro-q" placeholder="Nome, pedido, código…" />
+          </label>
+          <label class="field" style="width: 160px; margin: 0">
+            <span class="field-label">Status</span>
+            <input type="text" id="filtro-status" placeholder="pending…" />
+          </label>
+          <button type="button" class="btn btn-primary" id="btn-filtrar">Listar</button>
+          <button type="button" class="btn btn-primary" id="btn-sync-all" style="background: #5c4a3a">
+            Sincronizar todos
+          </button>
+        </div>
+        <div id="admin-msg" class="toast-inline info state-hidden" style="margin-top: 1rem"></div>
+        <div style="overflow-x: auto; margin-top: 1rem">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Status</th>
+                <th>Transportadora</th>
+                <th>Pedido</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-envios"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

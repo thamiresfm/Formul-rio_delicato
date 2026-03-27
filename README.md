@@ -20,9 +20,16 @@ Abra `http://localhost:3000`. O `server.js` serve a pasta `public/`.
 
 **Settings → Pages → Branch: `main`, Folder: `/ (root)`**.
 
-1. Edite **`public/`**.
-2. `npm run sync-pages`
-3. Commit e push na raiz: `index.html`, `app.js`, `styles.css`, `assets/`, `.nojekyll`.
+1. Edite **`public/`** (formulários em `public/formulariocaixalove/` etc., rastreio em `public/rastreios/`).
+2. `npm run sync-pages` — copia para a raiz do repo o mesmo esquema das caixas **e** a pasta `rastreios/` (página pública + `rastreios/admin/`), para o Pages servir `/rastreios/` como serve `/formulariocaixalove/`.
+3. Commit e push na raiz: `index.html`, pastas dos formulários, `rastreios/`, `js/`, `.nojekyll`.
+
+### Rastreio: site estático (Pages) + API no Node
+
+- Com **`npm start`**, a pasta `public/` já inclui `rastreios/`; o servidor entrega **`/rastreios/`** por `express.static`, igual às caixas — não precisa de passo extra.
+- No **GitHub Pages** (só HTML), a consulta chama `POST /api/rastreio/consultar`. Esse endpoint **não existe** no Pages; precisa de um backend Node noutro host (ou o mesmo domínio a apontar para esse servidor). No `public/rastreios/index.html`, use a meta **`delicatto-api-base`** com a URL base da API, por exemplo:  
+  `<meta name="delicatto-api-base" content="https://delicattopersonalizados.com.br" />`  
+  (sem barra no fim). Vazio = mesma origem (ideal quando o HTML e o Node são o mesmo site).
 
 ## Problemas comuns
 
