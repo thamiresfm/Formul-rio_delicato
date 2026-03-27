@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- URL do backend Node (vazio = mesma origem). Em GitHub Pages, coloque a URL do servidor da API, ex.: https://api.seudominio.com -->
-    <meta name="delicatto-api-base" content="" />
+    <!-- API Node (Render). Em localhost com npm start, o script abaixo zera para usar a mesma origem. -->
+    <meta name="delicatto-api-base" content="https://formulariodelicatto.onrender.com" />
     <base href="/rastreios/" />
     <link rel="canonical" href="https://delicattopersonalizados.com.br/rastreios/" />
     <title>Acompanhe seu pedido — Delicatto Personalizados</title>
@@ -70,6 +70,14 @@
         <a href="https://wa.me/5521996728473" target="_blank" rel="noopener noreferrer">WhatsApp +55 21 99672-8473</a>
       </p>
     </footer>
+    <script>
+      (function () {
+        var m = document.querySelector('meta[name="delicatto-api-base"]');
+        if (!m) return;
+        var h = window.location.hostname;
+        if (h === "localhost" || h === "127.0.0.1") m.setAttribute("content", "");
+      })();
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

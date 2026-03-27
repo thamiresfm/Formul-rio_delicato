@@ -27,9 +27,8 @@ Abra `http://localhost:3000`. O `server.js` serve a pasta `public/`.
 ### Rastreio: site estático (Pages) + API no Node
 
 - Com **`npm start`**, a pasta `public/` já inclui `rastreios/`; o servidor entrega **`/rastreios/`** por `express.static`, igual às caixas — não precisa de passo extra.
-- No **GitHub Pages** (só HTML), `POST /api/rastreio/consultar` devolve **405** (o Pages não executa Node). No `public/rastreios/index.html`, use a meta **`delicatto-api-base`** com a **URL base onde a API Node está** (Render, Railway, VPS, etc.) — **não** use o mesmo domínio se ele só aponta para o Pages. Ex.:  
-  `<meta name="delicatto-api-base" content="https://sua-api.onrender.com" />`  
-  (sem barra no fim). **Vazio** = mesma origem (só funciona quando o domínio já aponta para o processo que roda `server.js`).
+- No **GitHub Pages** (só HTML), `POST /api/rastreio/consultar` devolve **405** (o Pages não executa Node). O `public/rastreios/index.html` já define por defeito a API no **Render** (`delicatto-api-base`); em **localhost** o script na página zera a meta para usar o `npm start` na mesma origem. Ajuste a URL no HTML se o nome do serviço no Render mudar.
+- Avisos no **Console** do browser sobre **Vue** ou **MetaMask** costumam vir de **extensões** ou de outro separador — a página de rastreio deste repo não usa Vue.
 
 ### OAuth Melhor Envio (`/oauth/melhor-envio/iniciar` → `/oauth/callback`)
 
