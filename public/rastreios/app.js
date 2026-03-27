@@ -26,10 +26,13 @@ function urlApiConsultar() {
 }
 
 const MSG_ERRO_REDE =
-  "Não foi possível contactar o servidor de rastreio. " +
-  "No plano gratuito (Render), após inatividade o serviço pode demorar até cerca de um minuto a responder. " +
-  "Aguarde e tente de novo; verifique Wi‑Fi ou dados móveis, VPN e bloqueadores. " +
-  "Se o erro continuar, teste outro navegador ou rede.";
+  "O navegador não conseguiu falar com o servidor (rede, bloqueador ou cache antigo). " +
+  "A API está acessível: teste no Postman ou aguarde ~1 minuto no primeiro acesso (Render gratuito). " +
+  "Atualize a página forçando novo carregamento (Ctrl+F5 ou, no telemóvel, “recarregar sem cache”). " +
+  "Tente outra rede ou desative VPN/extensões que bloqueiem pedidos.";
+
+const MSG_ERRO_RENDER =
+  "Não foi possível mostrar o resultado na página. Tente atualizar o site (Ctrl+F5 ou limpar cache do navegador).";
 
 async function fetchConsultarRastreio(codigo) {
   const url = urlApiConsultar();
@@ -217,7 +220,12 @@ form.addEventListener("submit", async (e) => {
     }
 
     if (data.ok) {
-      renderResultado(data);
+      try {
+        renderResultado(data);
+      } catch (renderErr) {
+        console.error("[rastreio] render:", renderErr);
+        mostrarErro(MSG_ERRO_RENDER);
+      }
       return;
     }
 
@@ -231,7 +239,14 @@ form.addEventListener("submit", async (e) => {
     }
     if (data.codigoErro === "integracao") {
       mostrarErro(data.erro || "Falha na integração.");
-      if (data.cache) renderResultado(data.cache);
+      if (data.cache) {
+        try {
+          renderResultado(data.cache);
+        } catch (renderErr) {
+          console.error("[rastreio] render cache:", renderErr);
+          mostrarErro(MSG_ERRO_RENDER);
+        }
+      }
       return;
     }
     if (data.codigoErro === "servidor") {
@@ -252,7 +267,8 @@ form.addEventListener("submit", async (e) => {
     }
 
     mostrarErro("Resposta inesperada. Tente novamente.");
-  } catch {
+  } catch (err) {
+    console.error("[rastreio] fetch:", err);
     mostrarErro(MSG_ERRO_REDE);
   } finally {
     setLoading(false);
