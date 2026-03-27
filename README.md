@@ -27,9 +27,9 @@ Abra `http://localhost:3000`. O `server.js` serve a pasta `public/`.
 ### Rastreio: site estático (Pages) + API no Node
 
 - Com **`npm start`**, a pasta `public/` já inclui `rastreios/`; o servidor entrega **`/rastreios/`** por `express.static`, igual às caixas — não precisa de passo extra.
-- No **GitHub Pages** (só HTML), a consulta chama `POST /api/rastreio/consultar`. Esse endpoint **não existe** no Pages; precisa de um backend Node noutro host (ou o mesmo domínio a apontar para esse servidor). No `public/rastreios/index.html`, use a meta **`delicatto-api-base`** com a URL base da API, por exemplo:  
-  `<meta name="delicatto-api-base" content="https://delicattopersonalizados.com.br" />`  
-  (sem barra no fim). Vazio = mesma origem (ideal quando o HTML e o Node são o mesmo site).
+- No **GitHub Pages** (só HTML), `POST /api/rastreio/consultar` devolve **405** (o Pages não executa Node). No `public/rastreios/index.html`, use a meta **`delicatto-api-base`** com a **URL base onde a API Node está** (Render, Railway, VPS, etc.) — **não** use o mesmo domínio se ele só aponta para o Pages. Ex.:  
+  `<meta name="delicatto-api-base" content="https://sua-api.onrender.com" />`  
+  (sem barra no fim). **Vazio** = mesma origem (só funciona quando o domínio já aponta para o processo que roda `server.js`).
 
 ### OAuth Melhor Envio (`/oauth/melhor-envio/iniciar` → `/oauth/callback`)
 
@@ -44,6 +44,7 @@ O código já lê `ME_CLIENT_ID`, `ME_CLIENT_SECRET` e `ME_OAUTH_REDIRECT_URI` e
 | Situação | O que fazer |
 |----------|-------------|
 | Site desatualizado no ar | `npm run sync-pages`, commit e push. |
+| Rastreio: **405** ao consultar | O domínio está a servir só estático (ex.: Pages). Defina **`delicatto-api-base`** no `public/rastreios/index.html` com a URL do backend Node, ou aponte o DNS/proxy para o servidor onde corre `npm start`. |
 | WhatsApp não abre (app interno) | Abrir o site no **Safari** ou **Chrome**. |
 
 ---

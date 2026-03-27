@@ -146,6 +146,17 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ codigo }),
     });
+
+    if (res.status === 405) {
+      mostrarErro(
+        "Não há API de rastreio neste endereço (HTTP 405). O domínio está a servir só páginas estáticas (ex.: GitHub Pages), que não aceitam POST na API. " +
+          "Configure no HTML a meta delicatto-api-base com a URL do servidor Node (onde roda npm start / a API), por exemplo: " +
+          '<meta name="delicatto-api-base" content="https://seu-backend.example.com" />. ' +
+          "Se o site e a API estão no mesmo servidor Node, deixe a meta vazia."
+      );
+      return;
+    }
+
     const data = await res.json().catch(() => ({}));
 
     if (data.ok) {
