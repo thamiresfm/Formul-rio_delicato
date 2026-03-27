@@ -5,7 +5,7 @@
  *
  * IMPORTANTE — manutenção:
  * - Endpoints podem ser ajustados pela Melhor Envio. Em caso de mudança, altere apenas este arquivo.
- * - Autenticação: (1) JWT do painel ME em ME_PANEL_ACCESS_TOKEN, ou (2) OAuth2 com ME_REFRESH_TOKEN.
+ * - Autenticação: (1) JWT do painel ME em ME_PANEL_ACCESS_TOKEN — se definido, usado sempre; (2) OAuth2 só se o painel estiver vazio.
  *   Access em cache em memória; refresh rotacionado pela ME também (memória no mesmo processo, útil em RASTREIO_SEM_BANCO).
  * - Nenhum segredo deve ir para o frontend.
  */
@@ -190,8 +190,8 @@ function jwtExpParaMs(token) {
 }
 
 /**
- * Obtém access_token válido: prioriza JWT do painel (ME_PANEL_ACCESS_TOKEN); senão OAuth refresh_token.
- * Tenta JSON e, se falhar, application/x-www-form-urlencoded (comportamentos comuns em OAuth2).
+ * Obtém access_token válido: se ME_PANEL_ACCESS_TOKEN existir, usa-o sempre (OAuth não é usado).
+ * Sem painel: cache OAuth em memória; refresh via grant_type=refresh_token (JSON ou form-urlencoded).
  */
 async function obterAccessToken() {
   const now = Date.now();
