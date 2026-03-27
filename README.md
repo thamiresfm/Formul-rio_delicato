@@ -41,7 +41,8 @@ A integração com a API Melhor Envio usa **`ME_PANEL_ACCESS_TOKEN`** (JWT em **
 - **Build:** `npm install` (o script `postinstall` executa `prisma generate`). O pacote **`prisma` está em `dependencies`** para o Render instalar em produção (antes, só em `devDependencies`, o build falhava ou o serviço não subia).
 - **Start:** `npm start` ou `node server.js`.
 - **Variáveis:** **`ME_PANEL_ACCESS_TOKEN`** + **`ME_API_BASE`** (e opcionalmente `ME_CONTACT_EMAIL` para o `User-Agent`). Tudo no **Environment do Render** — secrets do GitHub **não** são aplicados sozinhos.
-- **Plano free:** o serviço “dorme”; o primeiro acesso pode levar **~1 minuto** a responder.
+- **Plano free:** o serviço “dorme” após ~15 min sem tráfego; o primeiro acesso depois disso pode levar **~1 minuto** a responder.
+- **Manter o serviço acordado (grátis):** o repositório inclui o workflow **`.github/workflows/keep-alive-render.yml`**, que chama `GET /api/rastreio/health` a cada **10 minutos** via GitHub Actions (reduz o spin-down). Confirme que **Actions** está ativo em **Settings → Actions → General**. Se mudar a URL do Render, crie uma variável de repositório **`RENDER_HEALTH_URL`** (Settings → Secrets and variables → Actions → Variables) com o valor completo, por exemplo `https://seu-servico.onrender.com/api/rastreio/health`. Pode disparar o workflow manualmente em **Actions → Keep alive (Render) → Run workflow**. Alternativa sem GitHub: um monitor externo (ex.: UptimeRobot) a cada 5–10 min na mesma URL.
 - **Teste rápido:** abrir `GET …/api/rastreio/health` — devolve `melhorEnvio.credenciaisOk` e `melhorEnvio.env` (flags `temME_*` **sem** expor segredos). Se `temME_PANEL_ACCESS_TOKEN` for `false` no JSON mas no painel do Render parece preenchido, o processo não está a receber a variável (redeploy, nome da chave, ou valor só com espaços).
 
 ## Problemas comuns

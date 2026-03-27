@@ -1,0 +1,19 @@
+# Mantém o Web Service no Render “acordado” no plano gratuito (spin-down após ~15 min sem tráfego).
+# Ajuste a variável de repositório RENDER_HEALTH_URL se a URL do serviço mudar.
+name: Keep alive (Render)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GET /api/rastreio/health
+        env:
+          RENDER_HEALTH_URL: ${{ vars.RENDER_HEALTH_URL }}
+        run: |
+          TARGET="${RENDER_HEALTH_URL:-https://formulariodelicatto.onrender.com/api/rastreio/health}"
+          curl -sS --max-time 120 -o /dev/null -w "HTTP %{http_code} — ${TARGET}\n" "$TARGET" || true
