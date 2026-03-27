@@ -21,6 +21,28 @@ function envStr(key) {
     .trim();
 }
 
+/** Erros que não são Error (AggregateError, string) ou com message vazia — evita mensagem genérica sem causa. */
+function erroParaTextoSeguro(e) {
+  if (e instanceof Error && String(e.message || "").trim()) {
+    return String(e.message);
+  }
+  if (typeof e === "string" && e.trim()) return e;
+  if (e && typeof e === "object") {
+    const msg = e.message ?? e.reason ?? e.cause?.message;
+    if (msg && String(msg).trim()) return String(msg);
+    if (Array.isArray(e.errors) && e.errors.length) {
+      return e.errors.map((x) => erroParaTextoSeguro(x)).filter(Boolean).join(" | ") || "AggregateError";
+    }
+  }
+  try {
+    const s = JSON.stringify(e);
+    if (s && s !== "{}") return s.slice(0, 500);
+  } catch {
+    /* ignore */
+  }
+  return "Erro desconhecido na integração (sem mensagem). Verifique logs do servidor.";
+}
+
 /**
  * Sanitiza o código digitado pelo cliente (somente caracteres seguros para rastreio).
  */
@@ -136,8 +158,9 @@ async function consultarPublicoDiretoMelhorEnvio(codigoLimpo) {
     const raw = match;
     return { resultado: "ok", dto: montarDtoPublicoDesdePayloadMe(raw, codigoLimpo) };
   } catch (e) {
-    console.error("[rastreio] consulta direta ME:", e.message);
-    return { resultado: "erro_me", mensagem: e.message };
+    const mensagem = erroParaTextoSeguro(e);
+    console.error("[rastreio] consulta direta ME:", mensagem, e);
+    return { resultado: "erro_me", mensagem };
   }
 }
 
@@ -185,8 +208,40 @@ function mensagemPublicaErroIntegracaoMe(mensagemInterna) {
   if (/OAuth falhou/i.test(m) && /invalid|revoked|expired|invalid_grant|400/i.test(m)) {
     return "Sessão OAuth do Melhor Envio inválida ou expirada. Refaça o OAuth ou atualize ME_REFRESH_TOKEN no Render.";
   }
+  if (/OAuth falhou|Melhor Envio OAuth/i.test(m)) {
+    return "A autenticação OAuth do Melhor Envio falhou. Prefira ME_PANEL_ACCESS_TOKEN (JWT em Permissões de acesso) ou atualize ME_REFRESH_TOKEN no servidor.";
+  }
   if (/\(5\d\d\)|\b502\b|\b503\b|Bad Gateway|Service Unavailable/i.test(m)) {
     return "O Melhor Envio está temporariamente indisponível. Tente de novo em alguns minutos.";
+  }
+  if (!m.trim()) {
+    return "Falha na integração sem detalhe visível. No Render, confira ME_PANEL_ACCESS_TOKEN, ME_API_BASE e os logs do serviço.";
+  }
+  if (/certificate|SSL|TLS|UNABLE_TO_VERIFY|certifica/i.test(m)) {
+    return "Erro de certificado ou ligação segura ao Melhor Envio. Verifique rede/firewall ou tente mais tarde.";
+  }
+  if (/\(400\)|\b400\b|Bad Request/i.test(m)) {
+    return "O Melhor Envio recusou o pedido (400). Confira se o código de rastreio está correto e se o token tem escopo de pedidos.";
+  }
+  if (/\(422\)|\b422\b|Unprocessable/i.test(m)) {
+    return "O Melhor Envio não aceitou os dados enviados (422). Confira o código de rastreio ou tente outro formato.";
+  }
+  if (/Melhor Envio:/i.test(m)) {
+    const st = m.match(/\((\d{3})\)/);
+    if (st) {
+      const code = st[1];
+      if (code === "401") {
+        return "O Melhor Envio recusou o token (401). Atualize ME_PANEL_ACCESS_TOKEN no painel ME (Permissões de acesso) ou confira OAuth.";
+      }
+      if (code === "403") {
+        return "Acesso negado pelo Melhor Envio (403). Confira escopos do JWT e se ME_API_BASE é produção ou sandbox conforme a conta.";
+      }
+      if (code === "404") {
+        return "Recurso não encontrado na API Melhor Envio (404). Confira ME_API_BASE e o código consultado.";
+      }
+      return `O Melhor Envio respondeu com erro HTTP ${code}. Verifique token, ME_API_BASE (https://www.melhorenvio.com.br) e os logs do servidor.`;
+    }
+    return "Falha ao comunicar com o Melhor Envio. Confira ME_API_BASE, ME_PANEL_ACCESS_TOKEN e os logs do servidor.";
   }
   return "Não foi possível consultar o Melhor Envio no momento. Tente de novo em instantes ou fale com a loja.";
 }

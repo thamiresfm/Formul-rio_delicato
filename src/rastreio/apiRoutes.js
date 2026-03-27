@@ -160,11 +160,16 @@ function registrarRotasRastreio(app) {
           });
         }
         if (me.resultado === "erro_me") {
+          const debugMe =
+            process.env.NODE_ENV === "development" ||
+            String(process.env.RASTREIO_DEBUG_ME ?? "")
+              .replace(/^\uFEFF/, "")
+              .trim() === "1";
           return res.status(200).json({
             ok: false,
             codigoErro: "integracao",
             erro: mensagemPublicaErroIntegracaoMe(me.mensagem),
-            detalhe: process.env.NODE_ENV === "development" ? me.mensagem : undefined,
+            detalhe: debugMe ? me.mensagem : undefined,
           });
         }
         return res.status(200).json({
