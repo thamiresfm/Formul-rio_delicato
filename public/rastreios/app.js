@@ -109,6 +109,8 @@ function renderResultado(data) {
   limparErro();
   painel.classList.remove("state-hidden");
 
+  const stepTrackFill = document.getElementById("step-track-fill");
+
   const st = data.status;
   statusPill.textContent = LABEL_STATUS[st] || st;
   statusPill.className = "status-pill ";
@@ -123,11 +125,13 @@ function renderResultado(data) {
   stepsBar.innerHTML = "";
   if (etapa < 0 || st === "attention") {
     wrapSteps?.classList.add("state-hidden");
+    if (stepTrackFill) stepTrackFill.style.width = "0%";
   } else {
     wrapSteps?.classList.remove("state-hidden");
     etapas.forEach((e, i) => {
       const div = document.createElement("div");
       div.className = "step";
+      div.setAttribute("role", "listitem");
       if (i < etapa) div.classList.add("done");
       if (i === etapa) div.classList.add("active");
       if (st === "delivered") div.classList.add("done");
@@ -136,6 +140,11 @@ function renderResultado(data) {
     });
     if (st === "delivered") {
       stepsBar.querySelectorAll(".step").forEach((el) => el.classList.add("done"));
+    }
+    if (stepTrackFill && etapas.length) {
+      const pct =
+        st === "delivered" ? 100 : Math.min(100, ((etapa + 1) / etapas.length) * 100);
+      stepTrackFill.style.width = `${pct}%`;
     }
   }
 
@@ -151,12 +160,15 @@ function renderResultado(data) {
     rows.push(["Pedido", data.pedido.codigo]);
   }
   rows.forEach(([dt, dd]) => {
+    const pair = document.createElement("div");
+    pair.className = "meta-pair";
     const dterm = document.createElement("dt");
     dterm.textContent = dt;
     const ddef = document.createElement("dd");
     ddef.textContent = dd;
-    metaGrid.appendChild(dterm);
-    metaGrid.appendChild(ddef);
+    pair.appendChild(dterm);
+    pair.appendChild(ddef);
+    metaGrid.appendChild(pair);
   });
 
   timeline.innerHTML = "";
@@ -171,8 +183,11 @@ function renderResultado(data) {
       const t = document.createElement("time");
       t.dateTime = ev.ocorridoEm || "";
       t.textContent = fmtData(ev.ocorridoEm);
+      const desc = document.createElement("span");
+      desc.className = "timeline-desc";
+      desc.textContent = ev.descricao || "";
       li.appendChild(t);
-      li.appendChild(document.createTextNode(ev.descricao || ""));
+      li.appendChild(desc);
       timeline.appendChild(li);
     });
   }

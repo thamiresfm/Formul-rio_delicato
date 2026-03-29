@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Great+Vibes&family=Source+Sans+3:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=2" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="page-bg" aria-hidden="true"></div>
@@ -55,29 +55,15 @@
         </form>
         <div id="state-loading" class="state-hidden toast-inline info" role="status">Consultando…</div>
         <div id="state-erro" class="state-hidden toast-inline error" role="alert"></div>
-        <div id="painel-resultado" class="state-hidden result-panel">
-          <div class="result-hero">
-            <div id="status-pill" class="status-pill neutral"></div>
-            <p id="msg-amigavel" class="msg-lead"></p>
+        <div id="painel-resultado" class="state-hidden">
+          <div id="status-pill" class="status-pill neutral"></div>
+          <p id="msg-amigavel" class="msg-lead"></p>
+          <div id="wrap-steps">
+            <div class="steps" id="steps-bar"></div>
           </div>
-          <div id="wrap-steps" class="steps-section">
-            <h2 class="result-section-title">Andamento do envio</h2>
-            <p class="result-section-hint">Acompanhe em qual etapa o seu pedido está.</p>
-            <div class="step-track" aria-hidden="true">
-              <div class="step-track-bg"></div>
-              <div class="step-track-fill" id="step-track-fill"></div>
-            </div>
-            <div class="steps" id="steps-bar" role="list"></div>
-          </div>
-          <section class="result-block" aria-labelledby="titulo-detalhes">
-            <h2 id="titulo-detalhes" class="result-section-title">Detalhes do envio</h2>
-            <dl class="meta-grid" id="meta-grid"></dl>
-          </section>
-          <section class="result-block result-block--history" aria-labelledby="titulo-historico">
-            <h2 id="titulo-historico" class="result-section-title">Histórico de movimentação</h2>
-            <p class="result-section-hint">Do mais antigo ao mais recente.</p>
-            <ul class="timeline" id="timeline"></ul>
-          </section>
+          <dl class="meta-grid" id="meta-grid"></dl>
+          <h2 class="card-title" style="font-size: 1.25rem; margin-top: 1.5rem">Histórico</h2>
+          <ul class="timeline" id="timeline"></ul>
         </div>
       </section>
     </main>
@@ -95,6 +81,6 @@
         if (h === "localhost" || h === "127.0.0.1") m.setAttribute("content", "");
       })();
     </script>
-    <script type="module" src="./app.js?v=7"></script>
+    <script type="module" src="./app.js?v=6"></script>
   </body>
 </html>
