@@ -260,18 +260,45 @@ function dataMarcoEmTransporte(payload) {
 }
 
 /**
+ * Tenta extrair "Cidade/UF" ou trecho após traço em textos de rastreio (ex.: descrição da transportadora).
+ */
+function extrairLocalidadeDeTexto(s) {
+  const t = String(s || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return "";
+  const m2 = t.match(/\b([A-Za-zÀ-ú][A-Za-zÀ-ú\s'.-]{1,40})\s*\/\s*([A-Z]{2})\b/);
+  if (m2) return `${m2[1].trim()}/${m2[2]}`;
+  const m1 = t.match(/[—\-–]\s*([A-Za-zÀ-ú0-9][A-Za-zÀ-ú0-9\s'.-]{1,60}\/[A-Z]{2})\s*$/i);
+  if (m1) return m1[1].trim();
+  return "";
+}
+
+/**
  * Local/unidade a partir de campos comuns da ME e transportadoras (sem persistência).
  */
 function textoLocalDeEvento(ev) {
   if (!ev || typeof ev !== "object") return "";
   const parts = [
     ev.location,
+    ev.locality,
+    ev.local,
+    ev.place,
+    ev.place_name,
     ev.unit,
     ev.branch_name,
     ev.branch,
     ev.facility,
+    ev.hub,
+    ev.hub_name,
+    ev.office_name,
+    ev.service_point,
     ev.city && (ev.state || ev.uf) ? `${ev.city}/${ev.state || ev.uf}` : null,
     ev.city && !ev.state ? ev.city : null,
+    ev.city_name && (ev.state_name || ev.state_abbr || ev.state)
+      ? `${ev.city_name}/${ev.state_name || ev.state_abbr || ev.state}`
+      : null,
+    ev.city_name && !ev.state_name ? ev.city_name : null,
   ].filter(Boolean);
   if (parts.length) return parts.map(String).join(" — ");
   const L = ev.localization;
@@ -283,6 +310,25 @@ function textoLocalDeEvento(ev) {
   if (addr && typeof addr === "object") {
     const citySt = [addr.city, addr.state || addr.uf].filter(Boolean).join("/");
     return [addr.name, citySt].filter(Boolean).join(" — ");
+  }
+  const to = ev.to;
+  if (to && typeof to === "object") {
+    const citySt = [to.city, to.state || to.uf].filter(Boolean).join("/");
+    return [to.name, citySt].filter(Boolean).join(" — ");
+  }
+  const from = ev.from;
+  if (from && typeof from === "object") {
+    const citySt = [from.city, from.state || from.uf].filter(Boolean).join("/");
+    return [from.name, citySt].filter(Boolean).join(" — ");
+  }
+  const data = ev.data;
+  if (data && typeof data === "object" && data.location) {
+    const loc = data.location;
+    if (typeof loc === "string") return loc;
+    if (typeof loc === "object") {
+      const citySt = [loc.city, loc.state || loc.uf].filter(Boolean).join("/");
+      return [loc.name, citySt].filter(Boolean).join(" — ");
+    }
   }
   return "";
 }
@@ -303,7 +349,10 @@ function tituloEDetalheEvento(ev) {
 function normalizarEventoParaDominio(ev, toDate) {
   const when = ev.created_at || ev.date || ev.occurred_at || ev.datetime || null;
   const { titulo, detalhe } = tituloEDetalheEvento(ev);
-  const local = textoLocalDeEvento(ev) || null;
+  let local = textoLocalDeEvento(ev).trim();
+  if (!local) {
+    local = extrairLocalidadeDeTexto(`${titulo} ${detalhe || ""}`).trim();
+  }
   const st = ev.status || ev.state || null;
   return {
     ocorridoEm: toDate(when),
@@ -370,32 +419,43 @@ function extrairCamposDoPayload(payload) {
   if (eventosBrutos.length === 0) {
     const emTransporte = dataMarcoEmTransporte(payload);
     const marcos = [
-      { created_at: payload.generated_at, description: "Etiqueta gerada", status: "generated" },
-      { created_at: payload.posted_at, description: "Postado", status: "posted" },
-      { created_at: emTransporte, description: "Em transporte", status: "in_transit" },
-      { created_at: payload.delivered_at, description: "Entregue", status: "delivered" },
+      {
+        created_at: payload.generated_at,
+        description: "Etiqueta gerada",
+        details: "Registro da etiqueta no Melhor Envio.",
+        status: "generated",
+      },
+      {
+        created_at: payload.posted_at,
+        description: "Postado",
+        details: "Enviado à transportadora para seguir ao destino.",
+        status: "posted",
+      },
+      {
+        created_at: emTransporte,
+        description: "Em transporte",
+        details: "Pacote em rota até o destino.",
+        status: "in_transit",
+      },
+      {
+        created_at: payload.delivered_at,
+        description: "Entregue",
+        details: "Situação finalizada junto à transportadora.",
+        status: "delivered",
+      },
     ].filter((m) => m.created_at);
     marcos.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
     eventosBrutos = marcos;
   }
 
-  let eventos = eventosBrutos.map((ev) => {
-    const when = ev.created_at || ev.date || ev.occurred_at || ev.datetime || null;
-    const desc =
-      ev.description || ev.details || ev.message || ev.status || JSON.stringify(ev).slice(0, 200);
-    const st = ev.status || ev.state || null;
-    return {
-      ocorridoEm: toDate(when),
-      descricao: String(desc || "Atualização"),
-      statusRaw: st ? String(st) : null,
-    };
-  });
+  let eventos = eventosBrutos.map((ev) => normalizarEventoParaDominio(ev, toDate));
 
+  const textoEvento = (e) => `${e.descricao || ""} ${e.detalhe || ""}`;
   const descSugereTransporte = (txt) =>
     /trânsito|transito|em transporte|transporte|encaminhado|roteiriza|carried|in_transit|em trânsito/i.test(
       String(txt || "")
     );
-  const jaTemTransporte = eventos.some((e) => descSugereTransporte(e.descricao));
+  const jaTemTransporte = eventos.some((e) => descSugereTransporte(textoEvento(e)));
   if (!jaTemTransporte) {
     const whenTransit = dataMarcoEmTransporte(payload);
     const o = toDate(whenTransit);
@@ -403,6 +463,8 @@ function extrairCamposDoPayload(payload) {
       eventos.push({
         ocorridoEm: o,
         descricao: "Em transporte",
+        detalhe: "Pacote em rota até o destino.",
+        local: null,
         statusRaw: "in_transit",
       });
       eventos.sort((a, b) => {
