@@ -34,15 +34,9 @@ const MSG_ERRO_REDE =
 const MSG_ERRO_RENDER =
   "Não foi possível mostrar o resultado na página. Tente atualizar o site (Ctrl+F5 ou limpar cache do navegador).";
 
-const MSG_TIMEOUT =
-  "A consulta demorou demais (o servidor pode estar a iniciar ou a rede está lenta). Aguarde ~1 minuto e tente de novo.";
-
-/** Evita “Consultando…” infinito: sem timeout o fetch pode não resolver nunca (ex.: Render inativo). */
-const FETCH_CONSULTAR_MS = 90_000;
-
 async function fetchConsultarRastreio(codigo) {
   const url = urlApiConsultar();
-  const baseInit = {
+  const init = {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ codigo }),
@@ -53,10 +47,7 @@ async function fetchConsultarRastreio(codigo) {
       if (tentativa > 0) {
         await new Promise((r) => setTimeout(r, 2500));
       }
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), FETCH_CONSULTAR_MS);
-      const res = await fetch(url, { ...baseInit, signal: ctrl.signal }).finally(() => clearTimeout(tid));
-      return res;
+      return await fetch(url, init);
     } catch (err) {
       ultimoErro = err;
     }
@@ -363,11 +354,7 @@ form.addEventListener("submit", async (e) => {
     mostrarErro("Resposta inesperada. Tente novamente.");
   } catch (err) {
     console.error("[rastreio] fetch:", err);
-    if (err && err.name === "AbortError") {
-      mostrarErro(MSG_TIMEOUT);
-    } else {
-      mostrarErro(MSG_ERRO_REDE);
-    }
+    mostrarErro(MSG_ERRO_REDE);
   } finally {
     setLoading(false);
   }

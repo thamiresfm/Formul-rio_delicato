@@ -77,40 +77,17 @@ function flagsEnvMelhorEnvioPublico() {
   };
 }
 
-/**
- * UUID do pedido/etiqueta na ME (GET /api/v2/me/orders/{id}).
- * Doc: https://docs.melhorenvio.com.br/reference/listar-informacoes-de-uma-etiqueta
- */
-function pareceUuidPedidoMe(s) {
-  const t = String(s || "").trim();
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t);
-}
-
-/** Normaliza valores do pedido ME para comparar com o que o cliente digitou. */
-function valoresRastreioComparaveis(p) {
-  return [
-    p.id,
-    p.protocol,
-    p.authorization_code != null ? String(p.authorization_code) : null,
-    p.tracking,
-    p.self_tracking,
-    p.melhorenvio_tracking,
-  ]
-    .filter(Boolean)
-    .map((x) => String(x).toUpperCase().replace(/\s/g, ""));
-}
-
-/**
- * Escolhe o pedido cujo id, protocolo, autorização ou tracking bate com o código;
- * senão o primeiro resultado da pesquisa (comportamento anterior).
- */
+/** Escolhe o pedido cuja trilha de rastreio bate com o código digitado; senão o primeiro resultado. */
 function escolherPedidoPorCodigoRastreio(pedidos, codigoLimpo) {
   if (!pedidos?.length) return null;
   const alvo = String(codigoLimpo || "")
     .toUpperCase()
     .replace(/\s/g, "");
-  const exato = pedidos.find((p) => valoresRastreioComparaveis(p).some((v) => v === alvo));
-  return exato || pedidos[0];
+  const match = pedidos.find((p) => {
+    const tr = [p.tracking, p.self_tracking, p.melhorenvio_tracking].filter(Boolean).map(String);
+    return tr.some((t) => t.toUpperCase().replace(/\s/g, "") === alvo);
+  });
+  return match || pedidos[0];
 }
 
 function montarDtoPublicoDesdePayloadMe(raw, codigoRastreioExibicao) {
@@ -158,15 +135,6 @@ async function consultarPublicoDiretoMelhorEnvio(codigoLimpo) {
     return { resultado: "sem_credenciais" };
   }
   try {
-    if (pareceUuidPedidoMe(codigoLimpo)) {
-      try {
-        const rawPorId = await buscarEnvioPorId(codigoLimpo);
-        return { resultado: "ok", dto: montarDtoPublicoDesdePayloadMe(rawPorId, codigoLimpo) };
-      } catch (errId) {
-        console.warn("[rastreio] GET /orders/:id falhou, tentando search:", erroParaTextoSeguro(errId));
-      }
-    }
-
     const pedidos = await pesquisarPedidosPorTermo(codigoLimpo);
     const match = escolherPedidoPorCodigoRastreio(pedidos, codigoLimpo);
     if (!match?.id) {
