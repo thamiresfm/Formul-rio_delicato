@@ -198,6 +198,14 @@ async function pesquisarPedidosPorTermo(q) {
       "User-Agent": userAgentMelhorEnvio(),
     },
   });
+  // GET /orders/search: a ME costuma devolver **204 No Content** quando não há etiqueta
+  // que corresponda ao `q` (id, protocolo, tracking, autorização, documento). É sucesso
+  // sem corpo — não é falha de autenticação. Ver discussão:
+  // https://docs.melhorenvio.com.br/discuss/67f00f0fd399010012fe3e5c
+  // Doc: https://docs.melhorenvio.com.br/reference/pesquisar-etiqueta
+  if (res.status === 204) {
+    return [];
+  }
   const text = await res.text();
   if (corpoEhPaginaHtml(text)) {
     throw erroRespostaHtmlEmVezDeJson();
