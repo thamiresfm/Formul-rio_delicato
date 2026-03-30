@@ -286,15 +286,14 @@ function cidadeUfMe(part) {
   return "";
 }
 
-/** Agência / ponto de postagem: nome + cidade/UF quando existir. */
+/** Agência / ponto de postagem: só cidade/UF do endereço (sem nome comercial da unidade). */
 function localUnidadeAgencia(agency) {
   if (!agency || typeof agency !== "object") return "";
-  const name = String(agency.name || "").trim();
   const addr = agency.address;
-  const loc = addr && typeof addr === "object" ? cidadeUfMe(addr) : "";
-  if (name && loc) return `${name} — ${loc}`;
-  if (loc) return loc;
-  if (name) return name;
+  if (addr && typeof addr === "object") {
+    const loc = cidadeUfMe(addr);
+    if (loc) return loc;
+  }
   return "";
 }
 

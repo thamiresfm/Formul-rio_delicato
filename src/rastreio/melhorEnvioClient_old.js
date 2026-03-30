@@ -274,6 +274,66 @@ function extrairLocalidadeDeTexto(s) {
   return "";
 }
 
+/** Cidade/UF a partir de blocos `from` / `to` / `address` da API ME. */
+function cidadeUfMe(part) {
+  if (!part || typeof part !== "object") return "";
+  const city = String(part.city || "").trim();
+  const uf = String(part.state_abbr || part.state || "")
+    .trim()
+    .replace(/^([a-z]{2})$/i, (m) => m.toUpperCase());
+  if (city && uf && uf.length <= 2) return `${city}/${uf}`;
+  if (city) return city;
+  return "";
+}
+
+/** Agência / ponto de postagem: nome + cidade/UF quando existir. */
+function localUnidadeAgencia(agency) {
+  if (!agency || typeof agency !== "object") return "";
+  const name = String(agency.name || "").trim();
+  const addr = agency.address;
+  const loc = addr && typeof addr === "object" ? cidadeUfMe(addr) : "";
+  if (name && loc) return `${name} — ${loc}`;
+  if (loc) return loc;
+  if (name) return name;
+  return "";
+}
+
+/**
+ * Quando a ME não envia `events[]` (só o pedido), preenche `local` com origem, agência, roteamento e destino.
+ * Não substitui local já vindo de evento de rastreio da transportadora.
+ */
+function enriquecerLocaisComPedidoMe(eventos, payload) {
+  if (!payload || typeof payload !== "object" || !Array.isArray(eventos)) return eventos;
+  const fromLoc = cidadeUfMe(payload.from);
+  const toLoc = cidadeUfMe(payload.to);
+  const agencyLoc = localUnidadeAgencia(payload.agency);
+  const sort = String(payload.additional_info?.sortingCode || "").trim();
+
+  return eventos.map((e) => {
+    if (e.local && String(e.local).trim()) return e;
+    const st = String(e.statusRaw || "").toLowerCase();
+    const tit = String(e.descricao || "").toLowerCase();
+
+    if (st === "generated" || /etiqueta\s+gerada/.test(tit)) {
+      return { ...e, local: fromLoc || agencyLoc || null };
+    }
+    if (st === "posted" || /^postado/.test(tit)) {
+      return { ...e, local: agencyLoc || fromLoc || null };
+    }
+    if (st === "in_transit" || /em\s+transporte/.test(tit)) {
+      const parts = [];
+      if (sort) parts.push(sort.trim());
+      if (toLoc) parts.push(`→ ${toLoc}`);
+      const loc = parts.length ? parts.join(" ") : toLoc || fromLoc || null;
+      return { ...e, local: loc };
+    }
+    if (st === "delivered" || /^entregue/.test(tit)) {
+      return { ...e, local: toLoc || null };
+    }
+    return e;
+  });
+}
+
 /**
  * Local/unidade a partir de campos comuns da ME e transportadoras (sem persistência).
  */
@@ -474,6 +534,8 @@ function extrairCamposDoPayload(payload) {
       });
     }
   }
+
+  eventos = enriquecerLocaisComPedidoMe(eventos, payload);
 
   return {
     statusRaw: statusRaw ? String(statusRaw) : null,
